@@ -107,8 +107,8 @@
         Viewer.init({
             width: canvasWidth,
             height: canvasHeight
-        }).fail(function(msg) {
-            alert(msg);
+        }).fail(function() {
+            alert('Could not initialize molecule viewer.');
         }).then(function() {
             return Viewer.download('1CRN');
         }).done(function() {

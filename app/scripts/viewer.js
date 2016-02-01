@@ -450,7 +450,8 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         });
 
         if (!gl || !initExtentions()) {
-            return $.Deferred().reject('Could not initialise WebGL.');
+            alert('Could not initialise WebGL.');
+            return $.Deferred().reject();
         }
 
         initGL();
