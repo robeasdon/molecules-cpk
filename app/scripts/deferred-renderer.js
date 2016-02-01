@@ -196,8 +196,8 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
 
     var loadShaders = function() {
         var promises = [];
-        promises.push(ShaderLoader.loadProgram('geom-pass', '/shaders/geom-pass.vert', '/shaders/geom-pass.frag', initGeometryPassShader));
-        promises.push(ShaderLoader.loadProgram('light-pass', '/shaders/light-pass.vert', '/shaders/light-pass.frag', initLightPassShader));
+        promises.push(ShaderLoader.loadProgram('geom-pass', 'shaders/geom-pass.vert', 'shaders/geom-pass.frag', initGeometryPassShader));
+        promises.push(ShaderLoader.loadProgram('light-pass', 'shaders/light-pass.vert', 'shaders/light-pass.frag', initLightPassShader));
         return $.when.apply($, promises);
     };
 

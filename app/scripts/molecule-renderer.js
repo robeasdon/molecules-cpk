@@ -89,7 +89,7 @@ var MoleculeRenderer = (function($, ShaderLoader) {
     };
 
     var loadShaders = function() {
-        return ShaderLoader.loadProgram('molecule', '/shaders/molecule.vert', '/shaders/molecule.frag', initShader);
+        return ShaderLoader.loadProgram('molecule', 'shaders/molecule.vert', 'shaders/molecule.frag', initShader);
     };
 
     var render = function(atoms, camera, mMatrix) {

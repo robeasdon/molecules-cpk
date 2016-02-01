@@ -64,7 +64,7 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
     };
 
     var loadShaders = function() {
-        return ShaderLoader.loadProgram('grid', '/shaders/grid.vert', '/shaders/grid.frag', initShader);
+        return ShaderLoader.loadProgram('grid', 'shaders/grid.vert', 'shaders/grid.frag', initShader);
     };
 
     var render = function(grid, camera, mMatrix, params) {
