@@ -18,8 +18,9 @@ vec3 intersectSphere(vec3 center, float radius, vec3 pos) {
     float c = dot(center, center) - radius * radius;
     float discriminant = b * b - 4.0 * a * c;
 
-	if(discriminant <= 0.0)
+    if(discriminant <= 0.0) {
         discard;
+    }
 
     float t = (b - sqrt(discriminant)) / (2.0 * a);
 
