@@ -1,11 +1,11 @@
 /*global vec2, vec3, vec4*/
 
-var Utilities = (function() {
-    'use strict';
+var Utilities = (function () {
+    "use strict";
 
     var utils = {};
 
-    utils.getEyeRay = function(eye, matrix, x, y) {
+    utils.getEyeRay = function (eye, matrix, x, y) {
         var ray = vec4.create();
         vec4.transformMat4(ray, vec4.fromValues(x, y, 0, 1), matrix);
 
@@ -21,7 +21,7 @@ var Utilities = (function() {
         return finalRay;
     };
 
-    utils.intersectRaySphere = function(origin, ray, center, radius) {
+    utils.intersectRaySphere = function (origin, ray, center, radius) {
         var toSphere = vec3.create();
         vec3.subtract(toSphere, origin, center);
         var a = vec3.dot(ray, ray);
@@ -39,7 +39,7 @@ var Utilities = (function() {
         return Number.MAX_VALUE;
     };
 
-    utils.intersectRayAABB = function(ro, rd, gridMin, gridMax) {
+    utils.intersectRayAABB = function (ro, rd, gridMin, gridMax) {
         var invR = vec3.create();
         invR[0] = 1 / rd[0];
         invR[1] = 1 / rd[1];
@@ -77,11 +77,11 @@ var Utilities = (function() {
         return {
             t0: t0,
             t1: t1,
-            hit: t0 <= t1
+            hit: t0 <= t1,
         };
     };
 
-    utils.sqDistPointAABB = function(p, min, max) {
+    utils.sqDistPointAABB = function (p, min, max) {
         var sqDist = 0;
 
         var v = p[0];
@@ -111,15 +111,24 @@ var Utilities = (function() {
         return sqDist;
     };
 
-    utils.intersectSphereAABB = function(center, radius, min, max) {
+    utils.intersectSphereAABB = function (center, radius, min, max) {
         var sqDist = utils.sqDistPointAABB(center, min, max);
         return sqDist <= radius * radius;
     };
 
-    utils.toLocal = function(p, matrix) {
-        var a = matrix[0], b = matrix[1], c = matrix[2], d = matrix[4],
-            e = matrix[5], f = matrix[6], g = matrix[8], h = matrix[9],
-            j = matrix[10], k = matrix[12], l = matrix[13], m = matrix[14];
+    utils.toLocal = function (p, matrix) {
+        var a = matrix[0],
+            b = matrix[1],
+            c = matrix[2],
+            d = matrix[4],
+            e = matrix[5],
+            f = matrix[6],
+            g = matrix[8],
+            h = matrix[9],
+            j = matrix[10],
+            k = matrix[12],
+            l = matrix[13],
+            m = matrix[14];
 
         var newP = vec3.create();
         newP[0] = a * p[0] + b * p[1] + c * p[2] + (a * -k + b * -l + c * -m);
@@ -129,8 +138,8 @@ var Utilities = (function() {
         return newP;
     };
 
-    utils.degToRad = function(degrees) {
-        return degrees * Math.PI / 180;
+    utils.degToRad = function (degrees) {
+        return (degrees * Math.PI) / 180;
     };
 
     return utils;

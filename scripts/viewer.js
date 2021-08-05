@@ -1,7 +1,7 @@
 /*global jQuery, vec3, mat4, Grid, GridRenderer, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, Utilities*/
 
-var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities) {
-    'use strict';
+var Viewer = (function ($, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities) {
+    "use strict";
 
     var gl;
     var exts = {};
@@ -9,9 +9,9 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
     var $canvas;
 
     var settings = {
-        canvas: '#canvas',
+        canvas: "#canvas",
         width: 512,
-        height: 512
+        height: 512,
     };
 
     var redrawRequested = false;
@@ -21,7 +21,7 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         altitude: 60,
         azimuth: 60,
         renderGrid: false,
-        mode: 5
+        mode: 5,
     };
 
     var molecule = {};
@@ -33,13 +33,13 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         position: vec3.create(),
         vpMatrix: mat4.create(),
         inverseVPMatrix: mat4.create(),
-        zoom: 0
+        zoom: 0,
     };
 
     var light = {
         position: vec3.fromValues(0, 0, 1),
         vMatrix: mat4.create(),
-        pMatrix: mat4.create()
+        pMatrix: mat4.create(),
     };
 
     var mMatrix = mat4.create();
@@ -55,25 +55,20 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
     var mouse = {
         down: false,
         lastX: null,
-        lastY: null
+        lastY: null,
     };
 
-    var initBasePlane = function() {
+    var initBasePlane = function () {
         basePlaneVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, basePlaneVertexPositionBuffer);
-        var vertices = [
-            -1.0, 0.0, 1.0,
-            1.0, 0.0, 1.0,
-            -1.0, 0.0, -1.0,
-            1.0, 0.0, -1.0
-        ];
+        var vertices = [-1.0, 0.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, -1.0];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         basePlaneVertexPositionBuffer.itemSize = 3;
         basePlaneVertexPositionBuffer.numItems = 4;
     };
 
-    var renderBasePlane = function() {
-        var shader = ShaderLoader.getShader('geom-pass');
+    var renderBasePlane = function () {
+        var shader = ShaderLoader.getShader("geom-pass");
 
         gl.useProgram(shader);
 
@@ -88,14 +83,21 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         gl.uniform3f(shader.colourUniform, 0.5, 0.5, 0.5);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, basePlaneVertexPositionBuffer);
-        gl.vertexAttribPointer(shader.vertexPositionAttribute, basePlaneVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            shader.vertexPositionAttribute,
+            basePlaneVertexPositionBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, basePlaneVertexPositionBuffer.numItems);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.useProgram(null);
     };
 
-    var render = function() {
+    var render = function () {
         redrawRequested = false;
 
         DeferredRenderer.beginGeometryPass();
@@ -112,7 +114,7 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
             GridRenderer.render(grid, camera, mMatrix, {
                 screenWidth: settings.width,
                 screenHeight: settings.height,
-                mouse: mouse
+                mouse: mouse,
             });
         }
 
@@ -128,7 +130,7 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         DeferredRenderer.renderLightPass(camera, light, mMatrix, renderSettings);
     };
 
-    var requestRedraw = function() {
+    var requestRedraw = function () {
         if (redrawRequested) {
             return;
         }
@@ -137,7 +139,7 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         window.requestAnimationFrame(render);
     };
 
-    var calcGrid = function() {
+    var calcGrid = function () {
         var boundingBox = MoleculeLoader.getBoundingBox();
         var maxRadius = MoleculeLoader.getMaxRadius();
 
@@ -148,8 +150,9 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
             var index3D = grid.getObjectGridIndex3D(atoms[i].position);
 
             if (grid.insideGrid(index3D[0], index3D[1], index3D[2])) {
-                var index = parseInt((index3D[2] * grid.numBoxesX * grid.numBoxesY) +
-                    (index3D[1] * grid.numBoxesX) + index3D[0]);
+                var index = parseInt(
+                    index3D[2] * grid.numBoxesX * grid.numBoxesY + index3D[1] * grid.numBoxesX + index3D[0]
+                );
 
                 if (grid.cells[index] === undefined) {
                     grid.cells[index] = [];
@@ -179,8 +182,10 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
                             var max = pickingGrid.getCellMaxPoint(cellX, cellY, cellZ);
 
                             if (Utilities.intersectSphereAABB(atoms[i].position, atoms[i].radius, min, max)) {
-                                var index = (cellZ * pickingGrid.numBoxesX * pickingGrid.numBoxesY) +
-                                    (cellY * pickingGrid.numBoxesX) + cellX;
+                                var index =
+                                    cellZ * pickingGrid.numBoxesX * pickingGrid.numBoxesY +
+                                    cellY * pickingGrid.numBoxesX +
+                                    cellX;
 
                                 if (pickingGrid.cells[index] === undefined) {
                                     pickingGrid.cells[index] = [];
@@ -195,12 +200,17 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         }
     };
 
-    var picking = function(x, y) {
+    var picking = function (x, y) {
         mat4.multiply(camera.vpMatrix, camera.pMatrix, camera.vMatrix);
         mat4.invert(camera.inverseVPMatrix, camera.vpMatrix);
 
         var origin = vec3.fromValues(camera.position[0], camera.position[1], camera.position[2]);
-        var direction = Utilities.getEyeRay(camera.position, camera.inverseVPMatrix, (x / settings.width) * 2 - 1, 1 - (y / settings.height) * 2);
+        var direction = Utilities.getEyeRay(
+            camera.position,
+            camera.inverseVPMatrix,
+            (x / settings.width) * 2 - 1,
+            1 - (y / settings.height) * 2
+        );
         vec3.normalize(direction, direction);
 
         selectedID = -1;
@@ -264,8 +274,9 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
             var done = false;
 
             while (!done) {
-                var index1D = parseInt((indexZ * pickingGrid.numBoxesX * pickingGrid.numBoxesY) +
-                    (indexY * pickingGrid.numBoxesX) + indexX);
+                var index1D = parseInt(
+                    indexZ * pickingGrid.numBoxesX * pickingGrid.numBoxesY + indexY * pickingGrid.numBoxesX + indexX
+                );
 
                 var cell = pickingGrid.cells[index1D];
 
@@ -278,7 +289,12 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
                         var id = cell[i];
 
                         if (!atoms[id].tested) {
-                            var t = Utilities.intersectRaySphere(rayOrigin, rayDir, atoms[id].position, atoms[id].radius);
+                            var t = Utilities.intersectRaySphere(
+                                rayOrigin,
+                                rayDir,
+                                atoms[id].position,
+                                atoms[id].radius
+                            );
                             atoms[id].tested = true;
 
                             if (t < tmin) {
@@ -314,7 +330,7 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         return atoms[selectedID];
     };
 
-    var setupMolecule = function() {
+    var setupMolecule = function () {
         molecule = MoleculeLoader.getMolecule();
         atoms = molecule.atoms;
 
@@ -323,7 +339,7 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         var furthestDist = MoleculeLoader.getFurthestDistanceToMidPoint(midPoint);
 
         basePlaneY = furthestDist + maxRadius;
-        camera.position[2] = camera.zoom = (furthestDist / Math.tan((45 * 0.5) * (Math.PI / 180.0))) + maxRadius;
+        camera.position[2] = camera.zoom = furthestDist / Math.tan(45 * 0.5 * (Math.PI / 180.0)) + maxRadius;
 
         MoleculeLoader.centerMoleculeOnMidPoint(midPoint);
 
@@ -334,19 +350,19 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         DeferredRenderer.calcOccluders(atoms, grid);
     };
 
-    var handleMouseDown = function(event) {
+    var handleMouseDown = function (event) {
         if (event.which === 1) {
             mouse.down = true;
         }
     };
 
-    var handleMouseUp = function(event) {
+    var handleMouseUp = function (event) {
         if (event.which === 1) {
             mouse.down = false;
         }
     };
 
-    var handleMouseMove = function(event) {
+    var handleMouseMove = function (event) {
         requestRedraw();
 
         if (mouse.down) {
@@ -365,46 +381,50 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         mouse.lastY = event.clientY;
     };
 
-    var handleMouseWheel = function(event) {
+    var handleMouseWheel = function (event) {
         requestRedraw();
 
-        var delta = event.originalEvent.wheelDelta ? event.originalEvent.wheelDelta / 40 : event.originalEvent.detail ? -event.originalEvent.detail : 0;
+        var delta = event.originalEvent.wheelDelta
+            ? event.originalEvent.wheelDelta / 40
+            : event.originalEvent.detail
+            ? -event.originalEvent.detail
+            : 0;
         camera.position[2] -= delta * 0.5;
     };
 
-    var getImageDataURL = function() {
-        return $canvas[0].toDataURL('image/jpeg');
+    var getImageDataURL = function () {
+        return $canvas[0].toDataURL("image/jpeg");
     };
 
-    var updateRenderSettings = function(options) {
+    var updateRenderSettings = function (options) {
         renderSettings = $.extend({}, renderSettings, options);
     };
 
-    var bindEventListeners = function() {
-        $canvas.on('mousedown', handleMouseDown);
-        $canvas.on('mouseup', handleMouseUp);
-        $canvas.on('mousemove', handleMouseMove);
-        $canvas.bind('mousewheel DOMMouseScroll', handleMouseWheel);
+    var bindEventListeners = function () {
+        $canvas.on("mousedown", handleMouseDown);
+        $canvas.on("mouseup", handleMouseUp);
+        $canvas.on("mousemove", handleMouseMove);
+        $canvas.bind("mousewheel DOMMouseScroll", handleMouseWheel);
     };
 
-    var loadFromFile = function(str) {
+    var loadFromFile = function (str) {
         MoleculeLoader.parsePDBFile(str);
         setupMolecule();
         requestRedraw();
     };
 
-    var download = function(pdbID) {
-        return MoleculeLoader.download(pdbID).done(function() {
+    var download = function (pdbID) {
+        return MoleculeLoader.download(pdbID).done(function () {
             setupMolecule();
             requestRedraw();
         });
     };
 
-    var getProtein = function() {
+    var getProtein = function () {
         return MoleculeLoader.getMolecule().protein;
     };
 
-    var initGL = function() {
+    var initGL = function () {
         gl.clearColor(1.0, 1.0, 1.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
@@ -414,18 +434,18 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         gl.disable(gl.BLEND);
     };
 
-    var initExtentions = function() {
-        exts.fragDepth = gl.getExtension('EXT_frag_depth');
-        exts.drawBuffers = gl.getExtension('WEBGL_draw_buffers');
-        exts.textureFloat = gl.getExtension('OES_texture_float');
-        exts.textureFloatLinear = gl.getExtension('OES_texture_float_linear');
-        exts.depthTexture = gl.getExtension('WEBGL_depth_texture');
+    var initExtentions = function () {
+        exts.fragDepth = gl.getExtension("EXT_frag_depth");
+        exts.drawBuffers = gl.getExtension("WEBGL_draw_buffers");
+        exts.textureFloat = gl.getExtension("OES_texture_float");
+        exts.textureFloatLinear = gl.getExtension("OES_texture_float_linear");
+        exts.depthTexture = gl.getExtension("WEBGL_depth_texture");
         //gl.getExtension('WEBGL_color_buffer_float');
 
         return exts.fragDepth && exts.drawBuffers && exts.textureFloat && exts.textureFloatLinear && exts.depthTexture;
     };
 
-    var resize = function(width, height) {
+    var resize = function (width, height) {
         requestRedraw();
 
         $canvas[0].width = width;
@@ -441,16 +461,16 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         mat4.perspective(camera.pMatrix, 45, width / height, 1.0, 1000.0);
     };
 
-    var init = function(options) {
+    var init = function (options) {
         settings = $.extend({}, settings, options);
         $canvas = $(settings.canvas);
 
-        gl = $canvas[0].getContext('experimental-webgl', {
-            preserveDrawingBuffer: true
+        gl = $canvas[0].getContext("experimental-webgl", {
+            preserveDrawingBuffer: true,
         });
 
         if (!gl || !initExtentions()) {
-            alert('Could not initialise WebGL.');
+            alert("Could not initialise WebGL.");
             return $.Deferred().reject();
         }
 
@@ -465,13 +485,13 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         initPromises.push(
             DeferredRenderer.init(gl, exts, {
                 width: settings.width,
-                height: settings.height
+                height: settings.height,
             }),
             GridRenderer.init(gl),
             MoleculeRenderer.init(gl)
         );
 
-        return $.when.apply($, initPromises).done(function() {
+        return $.when.apply($, initPromises).done(function () {
             resize(settings.width, settings.height);
         });
     };
@@ -485,6 +505,6 @@ var Viewer = (function($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molecu
         getProtein: getProtein,
         requestRedraw: requestRedraw,
         resize: resize,
-        picking: picking
+        picking: picking,
     };
 })(jQuery, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities);

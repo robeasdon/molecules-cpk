@@ -1,14 +1,15 @@
 /*global jQuery, ShaderLoader, Utilities, vec3, mat4*/
 
-var GridRenderer = (function($, ShaderLoader, Utilities) {
-    'use strict';
+var GridRenderer = (function ($, ShaderLoader, Utilities) {
+    "use strict";
 
     var gl;
 
     var cubeVertexPositionBuffer;
     var cubeVertexIndexBuffer;
 
-    var initBuffers = function() {
+    var initBuffers = function () {
+        // prettier-ignore
         var vertices = [
             // front
             0, 0, 1,
@@ -21,7 +22,7 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
             1, 1, 0,
             1, 0, 0
         ];
-
+        // prettier-ignore
         var indices = [
             0, 1, 1, 2, 2, 3, 3, 0, // front
             4, 5, 5, 6, 6, 7, 7, 4, // back
@@ -45,30 +46,30 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
         cubeVertexIndexBuffer.numItems = indices.length;
     };
 
-    var initShader = function(program) {
+    var initShader = function (program) {
         // attributes
 
-        program.vertexPositionAttribute = gl.getAttribLocation(program, 'aPosition');
+        program.vertexPositionAttribute = gl.getAttribLocation(program, "aPosition");
         gl.enableVertexAttribArray(program.vertexPositionAttribute);
 
         // uniforms
 
-        program.instancePositionUniform = gl.getUniformLocation(program, 'uInstancePosition');
-        program.colourUniform = gl.getUniformLocation(program, 'uColour');
-        program.cellSizeUniform = gl.getUniformLocation(program, 'uCellSize');
-        program.mMatrixUniform = gl.getUniformLocation(program, 'uModelMatrix');
-        program.vMatrixUniform = gl.getUniformLocation(program, 'uViewMatrix');
-        program.pMatrixUniform = gl.getUniformLocation(program, 'uProjectionMatrix');
+        program.instancePositionUniform = gl.getUniformLocation(program, "uInstancePosition");
+        program.colourUniform = gl.getUniformLocation(program, "uColour");
+        program.cellSizeUniform = gl.getUniformLocation(program, "uCellSize");
+        program.mMatrixUniform = gl.getUniformLocation(program, "uModelMatrix");
+        program.vMatrixUniform = gl.getUniformLocation(program, "uViewMatrix");
+        program.pMatrixUniform = gl.getUniformLocation(program, "uProjectionMatrix");
 
         return program;
     };
 
-    var loadShaders = function() {
-        return ShaderLoader.loadProgram('grid', 'shaders/grid.vert', 'shaders/grid.frag', initShader);
+    var loadShaders = function () {
+        return ShaderLoader.loadProgram("grid", "shaders/grid.vert", "shaders/grid.frag", initShader);
     };
 
-    var render = function(grid, camera, mMatrix, params) {
-        var shader = ShaderLoader.getShader('grid');
+    var render = function (grid, camera, mMatrix, params) {
+        var shader = ShaderLoader.getShader("grid");
 
         gl.useProgram(shader);
 
@@ -77,7 +78,14 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
         gl.uniformMatrix4fv(shader.pMatrixUniform, false, camera.pMatrix);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
-        gl.vertexAttribPointer(shader.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            shader.vertexPositionAttribute,
+            cubeVertexPositionBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
 
@@ -90,7 +98,12 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
         mat4.invert(inverseVPMatrix, vpMatrix);
 
         var ro = vec3.fromValues(camera.position[0], camera.position[1], camera.position[2]);
-        var rd = Utilities.getEyeRay(camera.position, inverseVPMatrix, (params.mouse.lastX / params.screenWidth) * 2 - 1, 1 - (params.mouse.lastY / params.screenHeight) * 2);
+        var rd = Utilities.getEyeRay(
+            camera.position,
+            inverseVPMatrix,
+            (params.mouse.lastX / params.screenWidth) * 2 - 1,
+            1 - (params.mouse.lastY / params.screenHeight) * 2
+        );
         vec3.normalize(rd, rd);
 
         var gridMax = vec3.create();
@@ -147,10 +160,12 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
             var done = false;
 
             while (!done) {
-                gl.uniform3f(shader.instancePositionUniform,
+                gl.uniform3f(
+                    shader.instancePositionUniform,
                     grid.min[0] + indexX * grid.cellSize,
                     grid.min[1] + indexY * grid.cellSize,
-                    grid.min[2] + indexZ * grid.cellSize);
+                    grid.min[2] + indexZ * grid.cellSize
+                );
 
                 gl.uniform3f(shader.colourUniform, 0.0, 0.0, 1.0);
                 gl.uniform1f(shader.cellSizeUniform, grid.cellSize);
@@ -182,10 +197,12 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
         for (var x = 0; x < grid.numBoxesX; x++) {
             for (var y = 0; y < grid.numBoxesY; y++) {
                 for (var z = 0; z < grid.numBoxesZ; z++) {
-                    gl.uniform3f(shader.instancePositionUniform,
+                    gl.uniform3f(
+                        shader.instancePositionUniform,
                         grid.min[0] + x * grid.cellSize,
                         grid.min[1] + y * grid.cellSize,
-                        grid.min[2] + z * grid.cellSize);
+                        grid.min[2] + z * grid.cellSize
+                    );
 
                     gl.uniform3f(shader.colourUniform, 0.5, 0.5, 0.5);
                     gl.uniform1f(shader.cellSizeUniform, grid.cellSize);
@@ -200,7 +217,7 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
         gl.useProgram(null);
     };
 
-    var init = function(ctx) {
+    var init = function (ctx) {
         gl = ctx;
         initBuffers();
         return $.when(loadShaders());
@@ -209,6 +226,6 @@ var GridRenderer = (function($, ShaderLoader, Utilities) {
     return {
         init: init,
         render: render,
-        initShader: initShader
+        initShader: initShader,
     };
 })(jQuery, ShaderLoader, Utilities);

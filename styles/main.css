@@ -1,0 +1,74 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 16px;
+}
+
+#ui-container {
+  background-color: #eee;
+  border-left: solid 1px #aaa;
+  width: 320px;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 20px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
+
+#ui-container section {
+  margin-bottom: 20px;
+}
+
+#ui-container #file-info {
+  margin-top: 10px;
+}
+
+.ui-controls p {
+  margin-bottom: 20px;
+}
+
+.ui-controls label {
+  display: inline-block;
+  margin-bottom: 5px;
+  margin-right: 10px;
+}
+
+.ui-controls input[type="range"], .ui-controls select {
+  width: 100%;
+}
+
+#pdb-id {
+  width: 75px;
+}
+
+#atom-info {
+  background-color: #fff;
+  border: 1px solid #aaa;
+  left: 10px;
+  padding: 10px;
+  position: absolute;
+  top: 10px;
+  width: 100px;
+}
+
+#loading {
+  background-color: #fff;
+  border-radius: 5px;
+  display: none;
+  left: 40%;
+  padding: 10px;
+  position: absolute;
+  top: 50%;
+}

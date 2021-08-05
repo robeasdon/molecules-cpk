@@ -1,14 +1,15 @@
 /*global jQuery, ShaderLoader*/
 
-var MoleculeRenderer = (function($, ShaderLoader) {
-    'use strict';
+var MoleculeRenderer = (function ($, ShaderLoader) {
+    "use strict";
 
     var gl;
 
     var cubeVertexPositionBuffer;
     var cubeVertexIndexBuffer;
 
-    var initBuffers = function() {
+    var initBuffers = function () {
+        // prettier-ignore
         var vertices = [
             // Front face
             -1.0, -1.0, 1.0,
@@ -46,7 +47,7 @@ var MoleculeRenderer = (function($, ShaderLoader) {
             -1.0, 1.0, 1.0,
             -1.0, 1.0, -1.0
         ];
-
+        // prettier-ignore
         var indices = [
             0, 1, 2, 0, 2, 3,  // front
             4, 5, 6, 4, 6, 7,  // back
@@ -69,31 +70,31 @@ var MoleculeRenderer = (function($, ShaderLoader) {
         cubeVertexIndexBuffer.numItems = indices.length;
     };
 
-    var initShader = function(program) {
+    var initShader = function (program) {
         // attributes
 
-        program.vertexPositionAttribute = gl.getAttribLocation(program, 'aPosition');
+        program.vertexPositionAttribute = gl.getAttribLocation(program, "aPosition");
         gl.enableVertexAttribArray(program.vertexPositionAttribute);
 
         // uniforms
 
-        program.instancePositionUniform = gl.getUniformLocation(program, 'uInstancePosition');
-        program.radiusUniform = gl.getUniformLocation(program, 'uRadius');
-        program.atomIdUniform = gl.getUniformLocation(program, 'uAtomId');
-        program.colourUniform = gl.getUniformLocation(program, 'uColour');
-        program.mMatrixUniform = gl.getUniformLocation(program, 'uModelMatrix');
-        program.vMatrixUniform = gl.getUniformLocation(program, 'uViewMatrix');
-        program.pMatrixUniform = gl.getUniformLocation(program, 'uProjectionMatrix');
+        program.instancePositionUniform = gl.getUniformLocation(program, "uInstancePosition");
+        program.radiusUniform = gl.getUniformLocation(program, "uRadius");
+        program.atomIdUniform = gl.getUniformLocation(program, "uAtomId");
+        program.colourUniform = gl.getUniformLocation(program, "uColour");
+        program.mMatrixUniform = gl.getUniformLocation(program, "uModelMatrix");
+        program.vMatrixUniform = gl.getUniformLocation(program, "uViewMatrix");
+        program.pMatrixUniform = gl.getUniformLocation(program, "uProjectionMatrix");
 
         return program;
     };
 
-    var loadShaders = function() {
-        return ShaderLoader.loadProgram('molecule', 'shaders/molecule.vert', 'shaders/molecule.frag', initShader);
+    var loadShaders = function () {
+        return ShaderLoader.loadProgram("molecule", "shaders/molecule.vert", "shaders/molecule.frag", initShader);
     };
 
-    var render = function(atoms, camera, mMatrix) {
-        var shader = ShaderLoader.getShader('molecule');
+    var render = function (atoms, camera, mMatrix) {
+        var shader = ShaderLoader.getShader("molecule");
 
         gl.useProgram(shader);
 
@@ -102,12 +103,24 @@ var MoleculeRenderer = (function($, ShaderLoader) {
         gl.uniformMatrix4fv(shader.pMatrixUniform, false, camera.pMatrix);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
-        gl.vertexAttribPointer(shader.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            shader.vertexPositionAttribute,
+            cubeVertexPositionBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
 
         for (var i = 0; i < atoms.length; i++) {
-            gl.uniform3f(shader.instancePositionUniform, atoms[i].position[0], atoms[i].position[1], atoms[i].position[2]);
+            gl.uniform3f(
+                shader.instancePositionUniform,
+                atoms[i].position[0],
+                atoms[i].position[1],
+                atoms[i].position[2]
+            );
             gl.uniform1f(shader.radiusUniform, atoms[i].radius);
             gl.uniform1f(shader.atomIdUniform, i);
             gl.uniform3f(shader.colourUniform, atoms[i].colour[0], atoms[i].colour[1], atoms[i].colour[2]);
@@ -120,7 +133,7 @@ var MoleculeRenderer = (function($, ShaderLoader) {
         gl.useProgram(null);
     };
 
-    var init = function(ctx) {
+    var init = function (ctx) {
         gl = ctx;
         initBuffers();
         return $.when(loadShaders());
@@ -129,6 +142,6 @@ var MoleculeRenderer = (function($, ShaderLoader) {
     return {
         init: init,
         initShader: initShader,
-        render: render
+        render: render,
     };
 })(jQuery, ShaderLoader);

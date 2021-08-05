@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="description" content="" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex" />
+        <title>Molecule Viewer</title>
+        <link rel="stylesheet" href="styles/main.css" />
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <div id="loading">Loading Molecule...</div>
+        <div id="atom-info"></div>
+        <div id="ui-container">
+            <section>
+                <p>
+                    A small demo to explore rendering space-filling molecules. Renders a cube for each atom, which is
+                    then culled in the fragment shader for ray traced spheres. Includes local ambient occlusion effects.
+                </p>
+            </section>
+            <section>
+                <label for="pdb-id">PDB ID</label>
+                <input id="pdb-id" placeholder="1CRN" size="4" />
+                <button id="load-molecule" type="button" data-loading-text="Loading...">Load</button>
+                <div id="file-info"></div>
+            </section>
+            <section class="ui-controls">
+                <p>
+                    <label for="render-mode">Render Mode</label>
+                    <select data-storage-key="mode" id="render-mode" class="ui-control">
+                        <option value="1">Positions</option>
+                        <option value="2">Normals</option>
+                        <option value="3">Colour</option>
+                        <option value="4">AO</option>
+                        <option value="5">AO + Colour</option>
+                        <option value="6">AO + Phong + Colour</option>
+                    </select>
+                </p>
+                <p>
+                    <label for="altitude">Light Position Altitude</label>
+                    <input
+                        type="range"
+                        min="0"
+                        max="180"
+                        step="1"
+                        value="60"
+                        id="altitude"
+                        data-storage-key="altitude"
+                        class="ui-control"
+                    />
+                </p>
+                <p>
+                    <label for="azimuth">Light Position Azimuth</label>
+                    <input
+                        type="range"
+                        min="0"
+                        max="360"
+                        step="1"
+                        value="60"
+                        id="azimuth"
+                        data-storage-key="azimuth"
+                        class="ui-control"
+                    />
+                </p>
+                <p>
+                    <label for="ao-intensity">Ambient Occlusion Intensity</label>
+                    <input
+                        type="range"
+                        min="0"
+                        max="0.5"
+                        step="0.01"
+                        value="0.25"
+                        id="ao-intensity"
+                        data-storage-key="aoIntensity"
+                        class="ui-control"
+                    />
+                </p>
+                <p>
+                    <label for="grid">Show Grid</label>
+                    <input type="checkbox" id="grid" data-storage-key="renderGrid" class="ui-control" />
+                </p>
+            </section>
+        </div>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.0.0/gl-matrix-min.js"
+            integrity="sha512-fVPtzMKqA2uBZXlZ72x+poE9jBesNO/nPO2mT+i0v0LAn73rXcvZGCGT2uryBgXozk6b8NdgMnup/d1+kisQPA=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+            integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+        <script src="scripts/utilities.js"></script>
+        <script src="scripts/grid.js"></script>
+        <script src="scripts/gbuffer.js"></script>
+        <script src="scripts/shader-loader.js"></script>
+        <script src="scripts/deferred-renderer.js"></script>
+        <script src="scripts/molecule-loader.js"></script>
+        <script src="scripts/molecule-renderer.js"></script>
+        <script src="scripts/grid-renderer.js"></script>
+        <script src="scripts/viewer.js"></script>
+        <script src="scripts/ui.js"></script>
+        <script type="text/javascript">
+            var uiWidth = $("#ui-container").width();
+            var canvasWidth = window.innerWidth - uiWidth;
+            var canvasHeight = window.innerHeight;
+
+            UI.showLoading();
+
+            Viewer.init({
+                width: canvasWidth,
+                height: canvasHeight,
+            })
+                .fail(function () {
+                    alert("Could not initialize molecule viewer.");
+                })
+                .then(function () {
+                    return Viewer.download("1CRN");
+                })
+                .done(function () {
+                    UI.init();
+                    UI.updateFileInfo(Viewer.getProtein());
+                    UI.hideLoading();
+
+                    $(window).on("resize", function () {
+                        Viewer.resize(window.innerWidth - uiWidth, window.innerHeight);
+                    });
+
+                    $(window).on("mousemove", function (event) {
+                        var atom = Viewer.picking(event.clientX, event.clientY);
+                        UI.updateAtomInfo(atom);
+                    });
+                });
+        </script>
+    </body>
+</html>

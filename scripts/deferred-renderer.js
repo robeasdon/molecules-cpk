@@ -1,7 +1,7 @@
 /*global jQuery, vec3, mat4, GBuffer, ShaderLoader, Utilities*/
 
-var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
-    'use strict';
+var DeferredRenderer = (function ($, GBuffer, ShaderLoader, Utilities) {
+    "use strict";
 
     var gl;
 
@@ -12,14 +12,8 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
     var occludersTextureWidth;
     var occludersTextureHeight;
 
-    var initQuad = function() {
-        var vertices = [
-            -1.0, -1.0, 0.0,
-            1.0, -1.0, 0.0,
-            1.0, 1.0, 0.0,
-            -1.0, 1.0, 0.0
-        ];
-
+    var initQuad = function () {
+        var vertices = [-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0];
         var indices = [0, 1, 2, 0, 2, 3];
 
         quadVertexPositionBuffer = gl.createBuffer();
@@ -35,7 +29,7 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
         quadVertexIndexBuffer.numItems = indices.length;
     };
 
-    var calcOccluders = function(atoms, grid) {
+    var calcOccluders = function (atoms, grid) {
         var maxOccludersPerAtom = 16; // also need to change constant in shader
         var sphereOccluders = [];
 
@@ -54,9 +48,17 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
                         var cellY = index3D[1] + y;
                         var cellZ = index3D[2] + z;
 
-                        if (((cellX >= 0) && (cellY >= 0) && (cellZ >= 0)) &&
-                            ((cellX < grid.numBoxesX) && (cellY < grid.numBoxesY) && (cellZ < grid.numBoxesZ))) {
-                            var index = parseInt((cellZ * grid.numBoxesX * grid.numBoxesY) + (cellY * grid.numBoxesX) + cellX);
+                        if (
+                            cellX >= 0 &&
+                            cellY >= 0 &&
+                            cellZ >= 0 &&
+                            cellX < grid.numBoxesX &&
+                            cellY < grid.numBoxesY &&
+                            cellZ < grid.numBoxesZ
+                        ) {
+                            var index = parseInt(
+                                cellZ * grid.numBoxesX * grid.numBoxesY + cellY * grid.numBoxesX + cellX
+                            );
 
                             if (grid.cells[index] === undefined) {
                                 continue;
@@ -88,14 +90,14 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
                 // the ao technique dosen't handle spheres very close to
                 // other spheres very well
                 //if (dist < atoms[aid].radius) {
-                    //continue;
+                //continue;
                 //}
 
                 var occluderAtom = {
                     id: aid,
                     dist: dist,
                     position: occluderPos,
-                    radius: atoms[aid].radius
+                    radius: atoms[aid].radius,
                 };
 
                 sphereOccluders[i].push(occluderAtom);
@@ -104,7 +106,7 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
 
         // sort the occluders by distance, closest first
         // add the closest occluders to the atoms array for each atom
-        var sortOccluders = function(a, b) {
+        var sortOccluders = function (a, b) {
             return a.dist - b.dist;
         };
 
@@ -124,18 +126,22 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
 
         var id = 0;
 
-        for(var i = 0, heightOffset = 0; i < texHeight; i++, heightOffset += maxOccludersPerAtom) {
-            for(var j = 0; j < texWidth; j++) {
+        for (var i = 0, heightOffset = 0; i < texHeight; i++, heightOffset += maxOccludersPerAtom) {
+            for (var j = 0; j < texWidth; j++) {
                 if (id < atoms.length) {
                     for (var k = 0; k < sphereOccluders[id].length; k++) {
                         if (k < maxOccludersPerAtom) {
-                            occluderData[(j * 4 + 0) + ((heightOffset + k) * 4) * (texWidth)] = sphereOccluders[id][k].position[0];
-                            occluderData[(j * 4 + 1) + ((heightOffset + k) * 4) * (texWidth)] = sphereOccluders[id][k].position[1];
-                            occluderData[(j * 4 + 2) + ((heightOffset + k) * 4) * (texWidth)] = sphereOccluders[id][k].position[2];
-                            occluderData[(j * 4 + 3) + ((heightOffset + k) * 4) * (texWidth)] = sphereOccluders[id][k].radius;
+                            occluderData[j * 4 + 0 + (heightOffset + k) * 4 * texWidth] =
+                                sphereOccluders[id][k].position[0];
+                            occluderData[j * 4 + 1 + (heightOffset + k) * 4 * texWidth] =
+                                sphereOccluders[id][k].position[1];
+                            occluderData[j * 4 + 2 + (heightOffset + k) * 4 * texWidth] =
+                                sphereOccluders[id][k].position[2];
+                            occluderData[j * 4 + 3 + (heightOffset + k) * 4 * texWidth] = sphereOccluders[id][k].radius;
                         }
                     }
                 }
+                
                 id++;
             }
         }
@@ -153,55 +159,69 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
         gl.bindTexture(gl.TEXTURE_2D, null);
     };
 
-    var initLightPassShader = function(program) {
+    var initLightPassShader = function (program) {
         // attributes
 
-        program.vertexPositionAttribute = gl.getAttribLocation(program, 'aPosition');
+        program.vertexPositionAttribute = gl.getAttribLocation(program, "aPosition");
         gl.enableVertexAttribArray(program.vertexPositionAttribute);
 
         // uniforms
 
-        program.mMatrixUniform = gl.getUniformLocation(program, 'uModelMatrix');
-        program.vMatrixUniform = gl.getUniformLocation(program, 'uViewMatrix');
-        program.pMatrixUniform = gl.getUniformLocation(program, 'uProjectionMatrix');
-        program.mvMatrixUniform = gl.getUniformLocation(program, 'uModelViewMatrix');
-        program.lightPosUniform = gl.getUniformLocation(program, 'uLightPos');
-        program.depthTextureUniform = gl.getUniformLocation(program, 'uDepthTexture');
-        program.normalTextureUniform = gl.getUniformLocation(program, 'uNormalTexture');
-        program.positionTextureUniform = gl.getUniformLocation(program, 'uPositionTexture');
-        program.colorTextureUniform = gl.getUniformLocation(program, 'uColorTexture');
-        program.occludersTextureUniform = gl.getUniformLocation(program, 'uOccludersTexture');
-        program.occludersTextureSizeUniform = gl.getUniformLocation(program, 'uOccludersTextureSize');
-        program.renderModeUniform = gl.getUniformLocation(program, 'uRenderMode');
-        program.aoIntensityLocation = gl.getUniformLocation(program, 'uAOIntensity');
+        program.mMatrixUniform = gl.getUniformLocation(program, "uModelMatrix");
+        program.vMatrixUniform = gl.getUniformLocation(program, "uViewMatrix");
+        program.pMatrixUniform = gl.getUniformLocation(program, "uProjectionMatrix");
+        program.mvMatrixUniform = gl.getUniformLocation(program, "uModelViewMatrix");
+        program.lightPosUniform = gl.getUniformLocation(program, "uLightPos");
+        program.depthTextureUniform = gl.getUniformLocation(program, "uDepthTexture");
+        program.normalTextureUniform = gl.getUniformLocation(program, "uNormalTexture");
+        program.positionTextureUniform = gl.getUniformLocation(program, "uPositionTexture");
+        program.colorTextureUniform = gl.getUniformLocation(program, "uColorTexture");
+        program.occludersTextureUniform = gl.getUniformLocation(program, "uOccludersTexture");
+        program.occludersTextureSizeUniform = gl.getUniformLocation(program, "uOccludersTextureSize");
+        program.renderModeUniform = gl.getUniformLocation(program, "uRenderMode");
+        program.aoIntensityLocation = gl.getUniformLocation(program, "uAOIntensity");
 
         return program;
     };
 
-    var initGeometryPassShader = function(program) {
+    var initGeometryPassShader = function (program) {
         // attributes
 
-        program.vertexPositionAttribute = gl.getAttribLocation(program, 'aPosition');
+        program.vertexPositionAttribute = gl.getAttribLocation(program, "aPosition");
         gl.enableVertexAttribArray(program.vertexPositionAttribute);
 
         // uniforms
 
-        program.colourUniform = gl.getUniformLocation(program, 'uColour');
-        program.mMatrixUniform = gl.getUniformLocation(program, 'uModelMatrix');
-        program.vMatrixUniform = gl.getUniformLocation(program, 'uViewMatrix');
-        program.pMatrixUniform = gl.getUniformLocation(program, 'uProjectionMatrix');
+        program.colourUniform = gl.getUniformLocation(program, "uColour");
+        program.mMatrixUniform = gl.getUniformLocation(program, "uModelMatrix");
+        program.vMatrixUniform = gl.getUniformLocation(program, "uViewMatrix");
+        program.pMatrixUniform = gl.getUniformLocation(program, "uProjectionMatrix");
 
         return program;
     };
 
-    var loadShaders = function() {
+    var loadShaders = function () {
         var promises = [];
-        promises.push(ShaderLoader.loadProgram('geom-pass', 'shaders/geom-pass.vert', 'shaders/geom-pass.frag', initGeometryPassShader));
-        promises.push(ShaderLoader.loadProgram('light-pass', 'shaders/light-pass.vert', 'shaders/light-pass.frag', initLightPassShader));
+        promises.push(
+            ShaderLoader.loadProgram(
+                "geom-pass",
+                "shaders/geom-pass.vert",
+                "shaders/geom-pass.frag",
+                initGeometryPassShader
+            )
+        );
+        promises.push(
+            ShaderLoader.loadProgram(
+                "light-pass",
+                "shaders/light-pass.vert",
+                "shaders/light-pass.frag",
+                initLightPassShader
+            )
+        );
         return $.when.apply($, promises);
     };
 
-    var renderLightPass = function(camera, light, mMatrix, settings) {
+    var renderLightPass = function (camera, light, mMatrix, settings) {
         var lightPosViewSpace = vec3.create();
         vec3.transformMat4(lightPosViewSpace, light.position, camera.vMatrix);
 
@@ -211,7 +231,7 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.DEPTH_TEST);
 
-        var shader = ShaderLoader.getShader('light-pass');
+        var shader = ShaderLoader.getShader("light-pass");
 
         gl.useProgram(shader);
 
@@ -244,7 +264,14 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
         gl.uniform1f(shader.aoIntensityLocation, settings.aoIntensity);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexPositionBuffer);
-        gl.vertexAttribPointer(shader.vertexPositionAttribute, quadVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            shader.vertexPositionAttribute,
+            quadVertexPositionBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadVertexIndexBuffer);
 
@@ -255,27 +282,27 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
         gl.useProgram(null);
     };
 
-    var beginGeometryPass = function() {
+    var beginGeometryPass = function () {
         GBuffer.bindGeometryPass();
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.enable(gl.DEPTH_TEST);
     };
 
-    var endGeometryPass = function() {
+    var endGeometryPass = function () {
         GBuffer.unbindGeometryPass();
     };
 
-    var resize = function(width, height) {
+    var resize = function (width, height) {
         GBuffer.resize(width, height);
     };
 
-    var init = function(ctx, exts, options) {
+    var init = function (ctx, exts, options) {
         gl = ctx;
 
         GBuffer.init(gl, exts, {
             width: options.width,
-            height: options.height
+            height: options.height,
         });
 
         initQuad();
@@ -288,6 +315,6 @@ var DeferredRenderer = (function($, GBuffer, ShaderLoader, Utilities) {
         calcOccluders: calcOccluders,
         beginGeometryPass: beginGeometryPass,
         endGeometryPass: endGeometryPass,
-        renderLightPass: renderLightPass
+        renderLightPass: renderLightPass,
     };
 })(jQuery, GBuffer, ShaderLoader, Utilities);

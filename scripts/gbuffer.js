@@ -1,5 +1,5 @@
-var GBuffer = (function() {
-    'use strict';
+var GBuffer = (function () {
+    "use strict";
 
     var gl;
     var exts;
@@ -13,14 +13,24 @@ var GBuffer = (function() {
     var width;
     var height;
 
-    var initBuffers = function() {
+    var initBuffers = function () {
         depthTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, depthTexture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.DEPTH_COMPONENT,
+            width,
+            height,
+            0,
+            gl.DEPTH_COMPONENT,
+            gl.UNSIGNED_SHORT,
+            null
+        );
 
         normalTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, normalTexture);
@@ -50,36 +60,65 @@ var GBuffer = (function() {
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, exts.drawBuffers.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, normalTexture, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, exts.drawBuffers.COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, positionTexture, 0);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, exts.drawBuffers.COLOR_ATTACHMENT2_WEBGL, gl.TEXTURE_2D, colorTexture, 0);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            exts.drawBuffers.COLOR_ATTACHMENT0_WEBGL,
+            gl.TEXTURE_2D,
+            normalTexture,
+            0
+        );
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            exts.drawBuffers.COLOR_ATTACHMENT1_WEBGL,
+            gl.TEXTURE_2D,
+            positionTexture,
+            0
+        );
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            exts.drawBuffers.COLOR_ATTACHMENT2_WEBGL,
+            gl.TEXTURE_2D,
+            colorTexture,
+            0
+        );
 
         var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
-            alert('Invalid FBO status: ' + status);
+            alert("Invalid FBO status: " + status);
         }
 
         gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
-    var bindGeometryPass = function() {
+    var bindGeometryPass = function () {
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
         exts.drawBuffers.drawBuffersWEBGL([
             exts.drawBuffers.COLOR_ATTACHMENT0_WEBGL,
             exts.drawBuffers.COLOR_ATTACHMENT1_WEBGL,
-            exts.drawBuffers.COLOR_ATTACHMENT2_WEBGL
+            exts.drawBuffers.COLOR_ATTACHMENT2_WEBGL,
         ]);
     };
 
-    var unbindGeometryPass = function() {
+    var unbindGeometryPass = function () {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
-    var resizeBuffers = function() {
+    var resizeBuffers = function () {
         gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.DEPTH_COMPONENT,
+            width,
+            height,
+            0,
+            gl.DEPTH_COMPONENT,
+            gl.UNSIGNED_SHORT,
+            null
+        );
         gl.bindTexture(gl.TEXTURE_2D, null);
 
         gl.bindTexture(gl.TEXTURE_2D, normalTexture);
@@ -95,30 +134,30 @@ var GBuffer = (function() {
         gl.bindTexture(gl.TEXTURE_2D, null);
     };
 
-    var resize = function(w, h) {
+    var resize = function (w, h) {
         width = w;
         height = h;
 
         resizeBuffers();
     };
 
-    var getDepthTexture = function() {
+    var getDepthTexture = function () {
         return depthTexture;
     };
 
-    var getNormalTexture = function() {
+    var getNormalTexture = function () {
         return normalTexture;
     };
 
-    var getPositionTexture = function() {
+    var getPositionTexture = function () {
         return positionTexture;
     };
 
-    var getColorTexture = function() {
+    var getColorTexture = function () {
         return colorTexture;
     };
 
-    var init = function(ctx, extensions, options) {
+    var init = function (ctx, extensions, options) {
         gl = ctx;
         exts = extensions;
         width = options.width;
@@ -135,6 +174,6 @@ var GBuffer = (function() {
         getDepthTexture: getDepthTexture,
         getNormalTexture: getNormalTexture,
         getPositionTexture: getPositionTexture,
-        getColorTexture: getColorTexture
+        getColorTexture: getColorTexture,
     };
 })();
