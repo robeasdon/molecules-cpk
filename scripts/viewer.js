@@ -7,12 +7,7 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
     let exts = {};
 
     let canvas;
-
-    let settings = {
-        canvasSelector: "#canvas",
-        width: 512,
-        height: 512,
-    };
+    let canvasComputedStyle;
 
     let redrawRequested = false;
 
@@ -104,7 +99,7 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
 
         mat4.identity(camera.vMatrix);
         mat4.lookAt(camera.vMatrix, camera.position, [0, 0, 0], [0, 1, 0]);
-        mat4.perspective(camera.pMatrix, 45, settings.width / settings.height, 1.0, 1000.0);
+        mat4.perspective(camera.pMatrix, 45, canvas.width / canvas.height, 1.0, 1000.0);
 
         MoleculeRenderer.render(atoms, camera, mMatrix);
 
@@ -112,8 +107,8 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
 
         if (renderSettings.renderGrid) {
             GridRenderer.render(grid, camera, mMatrix, {
-                screenWidth: settings.width,
-                screenHeight: settings.height,
+                screenWidth: canvas.width,
+                screenHeight: canvas.height,
                 mouse: mouse,
             });
         }
@@ -208,8 +203,8 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         let direction = Utilities.getEyeRay(
             camera.position,
             camera.inverseVPMatrix,
-            (x / settings.width) * 2 - 1,
-            1 - (y / settings.height) * 2
+            (x / canvas.width) * 2 - 1,
+            1 - (y / canvas.height) * 2
         );
         vec3.normalize(direction, direction);
 
@@ -388,6 +383,12 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         camera.position[2] -= delta * 0.5;
     };
 
+    let handleResize = function () {
+        let canvasWidth = canvasComputedStyle.width.replace("px", "");
+        let canvasHeight = canvasComputedStyle.height.replace("px", "");
+        resize(canvasWidth, canvasHeight);
+    };
+
     let getImageDataURL = function () {
         return canvas.toDataURL("image/jpeg");
     };
@@ -401,6 +402,7 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         canvas.addEventListener("mouseup", handleMouseUp);
         canvas.addEventListener("mousemove", handleMouseMove);
         canvas.addEventListener("wheel", handleMouseWheel);
+        window.addEventListener("resize", handleResize);
     };
 
     let loadFromFile = function (str) {
@@ -447,9 +449,6 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         canvas.width = width;
         canvas.height = height;
 
-        settings.width = width;
-        settings.height = height;
-
         DeferredRenderer.resize(width, height);
 
         gl.viewport(0, 0, width, height);
@@ -457,9 +456,12 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         mat4.perspective(camera.pMatrix, 45, width / height, 1.0, 1000.0);
     };
 
-    let init = function (options) {
-        settings = { ...settings, ...options };
-        canvas = document.querySelector(settings.canvasSelector);
+    let init = function (canvasElement) {
+        canvas = canvasElement;
+        canvasComputedStyle = getComputedStyle(canvas);
+        canvas.width = canvasComputedStyle.width.replace("px", "");
+        canvas.height = canvasComputedStyle.height.replace("px", "");
+
         gl = canvas.getContext("experimental-webgl", {
             preserveDrawingBuffer: true,
         });
@@ -477,8 +479,8 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         let initPromises = [];
         initPromises.push(
             DeferredRenderer.init(gl, exts, {
-                width: settings.width,
-                height: settings.height,
+                width: canvas.width,
+                height: canvas.height,
             }),
             GridRenderer.init(gl),
             MoleculeRenderer.init(gl)
@@ -486,7 +488,7 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
 
         return Promise.all(initPromises).then(function () {
             bindEventListeners();
-            resize(settings.width, settings.height);
+            resize(canvas.width, canvas.height);
         });
     };
 
