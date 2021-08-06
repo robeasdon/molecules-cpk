@@ -1,11 +1,11 @@
-var ShaderLoader = (function () {
+let ShaderLoader = (function () {
     "use strict";
 
-    var gl;
-    var shaders = {};
+    let gl;
+    let shaders = {};
 
-    var createShader = function (str, type) {
-        var shader = gl.createShader(type);
+    let createShader = function (str, type) {
+        let shader = gl.createShader(type);
         gl.shaderSource(shader, str);
         gl.compileShader(shader);
 
@@ -16,10 +16,10 @@ var ShaderLoader = (function () {
         return shader;
     };
 
-    var createProgram = function (vstr, fstr) {
-        var program = gl.createProgram();
-        var vshader = createShader(vstr, gl.VERTEX_SHADER);
-        var fshader = createShader(fstr, gl.FRAGMENT_SHADER);
+    let createProgram = function (vstr, fstr) {
+        let program = gl.createProgram();
+        let vshader = createShader(vstr, gl.VERTEX_SHADER);
+        let fshader = createShader(fstr, gl.FRAGMENT_SHADER);
         gl.attachShader(program, vshader);
         gl.attachShader(program, fshader);
         gl.linkProgram(program);
@@ -31,25 +31,25 @@ var ShaderLoader = (function () {
         return program;
     };
 
-    var loadShaderFromFile = function (url) {
+    let loadShaderFromFile = function (url) {
         return fetch(url).then(function (response) {
             return response.text();
         });
     };
 
-    var loadProgram = function (name, vert, frag, initShader) {
+    let loadProgram = function (name, vert, frag, initShader) {
         return Promise.all([loadShaderFromFile(vert), loadShaderFromFile(frag)]).then(function ([vshader, fshader]) {
-            var program = createProgram(vshader, fshader);
+            let program = createProgram(vshader, fshader);
             initShader(program);
             shaders[name] = program;
         });
     };
 
-    var getShader = function (name) {
+    let getShader = function (name) {
         return shaders[name];
     };
 
-    var init = function (ctx) {
+    let init = function (ctx) {
         gl = ctx;
     };
 

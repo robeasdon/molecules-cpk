@@ -1,19 +1,19 @@
-var GBuffer = (function () {
+let GBuffer = (function () {
     "use strict";
 
-    var gl;
-    var exts;
+    let gl;
+    let exts;
 
-    var depthTexture;
-    var normalTexture;
-    var positionTexture;
-    var colorTexture;
-    var framebuffer;
+    let depthTexture;
+    let normalTexture;
+    let positionTexture;
+    let colorTexture;
+    let framebuffer;
 
-    var width;
-    var height;
+    let width;
+    let height;
 
-    var initBuffers = function () {
+    let initBuffers = function () {
         depthTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, depthTexture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -82,7 +82,7 @@ var GBuffer = (function () {
             0
         );
 
-        var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        let status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
 
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             alert("Invalid FBO status: " + status);
@@ -92,7 +92,7 @@ var GBuffer = (function () {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
-    var bindGeometryPass = function () {
+    let bindGeometryPass = function () {
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
         exts.drawBuffers.drawBuffersWEBGL([
@@ -102,11 +102,11 @@ var GBuffer = (function () {
         ]);
     };
 
-    var unbindGeometryPass = function () {
+    let unbindGeometryPass = function () {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     };
 
-    var resizeBuffers = function () {
+    let resizeBuffers = function () {
         gl.bindTexture(gl.TEXTURE_2D, depthTexture);
         gl.texImage2D(
             gl.TEXTURE_2D,
@@ -134,30 +134,30 @@ var GBuffer = (function () {
         gl.bindTexture(gl.TEXTURE_2D, null);
     };
 
-    var resize = function (w, h) {
+    let resize = function (w, h) {
         width = w;
         height = h;
 
         resizeBuffers();
     };
 
-    var getDepthTexture = function () {
+    let getDepthTexture = function () {
         return depthTexture;
     };
 
-    var getNormalTexture = function () {
+    let getNormalTexture = function () {
         return normalTexture;
     };
 
-    var getPositionTexture = function () {
+    let getPositionTexture = function () {
         return positionTexture;
     };
 
-    var getColorTexture = function () {
+    let getColorTexture = function () {
         return colorTexture;
     };
 
-    var init = function (ctx, extensions, options) {
+    let init = function (ctx, extensions, options) {
         gl = ctx;
         exts = extensions;
         width = options.width;

@@ -1,20 +1,20 @@
 /*global vec3, mat4, GBuffer, ShaderLoader*/
 
-var DeferredRenderer = (function (GBuffer, ShaderLoader) {
+let DeferredRenderer = (function (GBuffer, ShaderLoader) {
     "use strict";
 
-    var gl;
+    let gl;
 
-    var quadVertexPositionBuffer;
-    var quadVertexIndexBuffer;
+    let quadVertexPositionBuffer;
+    let quadVertexIndexBuffer;
 
-    var occludersTexture;
-    var occludersTextureWidth;
-    var occludersTextureHeight;
+    let occludersTexture;
+    let occludersTextureWidth;
+    let occludersTextureHeight;
 
-    var initQuad = function () {
-        var vertices = [-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0];
-        var indices = [0, 1, 2, 0, 2, 3];
+    let initQuad = function () {
+        let vertices = [-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0];
+        let indices = [0, 1, 2, 0, 2, 3];
 
         quadVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexPositionBuffer);
@@ -29,24 +29,24 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
         quadVertexIndexBuffer.numItems = indices.length;
     };
 
-    var calcOccluders = function (atoms, grid) {
-        var maxOccludersPerAtom = 16; // also need to change constant in shader
-        var sphereOccluders = [];
+    let calcOccluders = function (atoms, grid) {
+        let maxOccludersPerAtom = 16; // also need to change constant in shader
+        let sphereOccluders = [];
 
         // get occluder atoms for each sphere
         // only taking into account spheres in current and neighbouring grid cells
 
-        for (var i = 0; i < atoms.length; i++) {
-            var atomPos = atoms[i].position;
-            var index3D = grid.getObjectGridIndex3D(atomPos);
-            var proximateAtoms = [];
+        for (let i = 0; i < atoms.length; i++) {
+            let atomPos = atoms[i].position;
+            let index3D = grid.getObjectGridIndex3D(atomPos);
+            let proximateAtoms = [];
 
-            for (var x = -1; x < 2; x++) {
-                for (var y = -1; y < 2; y++) {
-                    for (var z = -1; z < 2; z++) {
-                        var cellX = index3D[0] + x;
-                        var cellY = index3D[1] + y;
-                        var cellZ = index3D[2] + z;
+            for (let x = -1; x < 2; x++) {
+                for (let y = -1; y < 2; y++) {
+                    for (let z = -1; z < 2; z++) {
+                        let cellX = index3D[0] + x;
+                        let cellY = index3D[1] + y;
+                        let cellZ = index3D[2] + z;
 
                         if (
                             cellX >= 0 &&
@@ -56,7 +56,7 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
                             cellY < grid.numBoxesY &&
                             cellZ < grid.numBoxesZ
                         ) {
-                            var index = parseInt(
+                            let index = parseInt(
                                 cellZ * grid.numBoxesX * grid.numBoxesY + cellY * grid.numBoxesX + cellX
                             );
 
@@ -64,7 +64,7 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
                                 continue;
                             }
 
-                            for (var j = 0; j < grid.cells[index].length; j++) {
+                            for (let j = 0; j < grid.cells[index].length; j++) {
                                 proximateAtoms.push(grid.cells[index][j]);
                             }
                         }
@@ -74,18 +74,18 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
 
             sphereOccluders[i] = [];
 
-            for (var j = 0; j < proximateAtoms.length; j++) {
-                var aid = proximateAtoms[j];
+            for (let j = 0; j < proximateAtoms.length; j++) {
+                let aid = proximateAtoms[j];
 
                 if (i === aid) {
                     continue;
                 }
 
-                var occluderPos = atoms[aid].position;
-                var dir = vec3.create();
+                let occluderPos = atoms[aid].position;
+                let dir = vec3.create();
 
                 vec3.subtract(dir, atomPos, occluderPos);
-                var dist = vec3.squaredLength(dir);
+                let dist = vec3.squaredLength(dir);
 
                 // the ao technique dosen't handle spheres very close to
                 // other spheres very well
@@ -93,7 +93,7 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
                 //continue;
                 //}
 
-                var occluderAtom = {
+                let occluderAtom = {
                     id: aid,
                     dist: dist,
                     position: occluderPos,
@@ -106,11 +106,11 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
 
         // sort the occluders by distance, closest first
         // add the closest occluders to the atoms array for each atom
-        var sortOccluders = function (a, b) {
+        let sortOccluders = function (a, b) {
             return a.dist - b.dist;
         };
 
-        for (var i = 0; i < sphereOccluders.length; i++) {
+        for (let i = 0; i < sphereOccluders.length; i++) {
             sphereOccluders[i].sort(sortOccluders);
         }
 
@@ -118,18 +118,18 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
         // then should just store the lookup id, and have a separate texture for atom positions
         // have to wait for webgl 2 for that
 
-        var texWidth = 2048;
-        var texHeight = parseInt((atoms.length + texWidth - 1) / texWidth);
-        var occluderTexHeight = texHeight * maxOccludersPerAtom;
+        let texWidth = 2048;
+        let texHeight = parseInt((atoms.length + texWidth - 1) / texWidth);
+        let occluderTexHeight = texHeight * maxOccludersPerAtom;
 
-        var occluderData = new Float32Array(texWidth * occluderTexHeight * 4);
+        let occluderData = new Float32Array(texWidth * occluderTexHeight * 4);
 
-        var id = 0;
+        let id = 0;
 
-        for (var i = 0, heightOffset = 0; i < texHeight; i++, heightOffset += maxOccludersPerAtom) {
-            for (var j = 0; j < texWidth; j++) {
+        for (let i = 0, heightOffset = 0; i < texHeight; i++, heightOffset += maxOccludersPerAtom) {
+            for (let j = 0; j < texWidth; j++) {
                 if (id < atoms.length) {
-                    for (var k = 0; k < sphereOccluders[id].length; k++) {
+                    for (let k = 0; k < sphereOccluders[id].length; k++) {
                         if (k < maxOccludersPerAtom) {
                             occluderData[j * 4 + 0 + (heightOffset + k) * 4 * texWidth] =
                                 sphereOccluders[id][k].position[0];
@@ -159,7 +159,7 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
         gl.bindTexture(gl.TEXTURE_2D, null);
     };
 
-    var initLightPassShader = function (program) {
+    let initLightPassShader = function (program) {
         // attributes
 
         program.vertexPositionAttribute = gl.getAttribLocation(program, "aPosition");
@@ -184,7 +184,7 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
         return program;
     };
 
-    var initGeometryPassShader = function (program) {
+    let initGeometryPassShader = function (program) {
         // attributes
 
         program.vertexPositionAttribute = gl.getAttribLocation(program, "aPosition");
@@ -200,8 +200,8 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
         return program;
     };
 
-    var loadShaders = function () {
-        var promises = [];
+    let loadShaders = function () {
+        let promises = [];
         promises.push(
             ShaderLoader.loadProgram(
                 "geom-pass",
@@ -221,17 +221,17 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
         return Promise.all(promises);
     };
 
-    var renderLightPass = function (camera, light, mMatrix, settings) {
-        var lightPosViewSpace = vec3.create();
+    let renderLightPass = function (camera, light, mMatrix, settings) {
+        let lightPosViewSpace = vec3.create();
         vec3.transformMat4(lightPosViewSpace, light.position, camera.vMatrix);
 
-        var mvMatrix = mat4.create();
+        let mvMatrix = mat4.create();
         mat4.multiply(mvMatrix, camera.vMatrix, mMatrix);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.DEPTH_TEST);
 
-        var shader = ShaderLoader.getShader("light-pass");
+        let shader = ShaderLoader.getShader("light-pass");
 
         gl.useProgram(shader);
 
@@ -282,22 +282,22 @@ var DeferredRenderer = (function (GBuffer, ShaderLoader) {
         gl.useProgram(null);
     };
 
-    var beginGeometryPass = function () {
+    let beginGeometryPass = function () {
         GBuffer.bindGeometryPass();
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.enable(gl.DEPTH_TEST);
     };
 
-    var endGeometryPass = function () {
+    let endGeometryPass = function () {
         GBuffer.unbindGeometryPass();
     };
 
-    var resize = function (width, height) {
+    let resize = function (width, height) {
         GBuffer.resize(width, height);
     };
 
-    var init = function (ctx, exts, options) {
+    let init = function (ctx, exts, options) {
         gl = ctx;
 
         GBuffer.init(gl, exts, {

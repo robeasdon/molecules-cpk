@@ -1,15 +1,15 @@
 /*global vec3*/
 
-var MoleculeLoader = (function () {
+let MoleculeLoader = (function () {
     "use strict";
 
-    var atoms = [];
-    var protein = {
+    let atoms = [];
+    let protein = {
         pdbID: "",
         title: "",
     };
 
-    var VDWList = {
+    let VDWList = {
         AG: 1.72,
         AR: 1.85,
         AS: 1.85,
@@ -51,20 +51,20 @@ var MoleculeLoader = (function () {
         ZN: 1.39,
     };
 
-    var lightGrey = [200.0 / 255.0, 200.0 / 255.0, 200.0 / 255.0];
-    var red = [240.0 / 255.0, 0.0, 0.0];
-    var white = [255.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0];
-    var lightBlue = [143.0 / 255.0, 143.0 / 255.0, 255.0 / 255.0];
-    var yellow = [255.0 / 255.0, 200.0 / 255.0, 50.0 / 255.0];
-    var orange = [255.0 / 255.0, 165.0 / 255.0, 0.0];
-    var green = [0.0, 255.0 / 255.0, 0.0];
-    var brown = [165.0 / 255.0, 42.0 / 255.0, 42.0 / 255.0];
-    var blue = [0.0, 0.0, 255.0 / 255.0];
-    var darkGreen = [42.0 / 255.0, 128.0 / 255.0, 42.0 / 255.0];
-    var darkGrey = [128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0];
-    var deepPink = [255.0 / 255.0, 20.0 / 255.0, 147.0 / 255.0];
+    let lightGrey = [200.0 / 255.0, 200.0 / 255.0, 200.0 / 255.0];
+    let red = [240.0 / 255.0, 0.0, 0.0];
+    let white = [255.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0];
+    let lightBlue = [143.0 / 255.0, 143.0 / 255.0, 255.0 / 255.0];
+    let yellow = [255.0 / 255.0, 200.0 / 255.0, 50.0 / 255.0];
+    let orange = [255.0 / 255.0, 165.0 / 255.0, 0.0];
+    let green = [0.0, 255.0 / 255.0, 0.0];
+    let brown = [165.0 / 255.0, 42.0 / 255.0, 42.0 / 255.0];
+    let blue = [0.0, 0.0, 255.0 / 255.0];
+    let darkGreen = [42.0 / 255.0, 128.0 / 255.0, 42.0 / 255.0];
+    let darkGrey = [128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0];
+    let deepPink = [255.0 / 255.0, 20.0 / 255.0, 147.0 / 255.0];
 
-    var colours = {
+    let colours = {
         C: lightGrey,
         O: red,
         H: white,
@@ -82,40 +82,40 @@ var MoleculeLoader = (function () {
         UNKNOWN: deepPink,
     };
 
-    var parsePDBFile = function (str) {
-        var lines = str.split("\n");
+    let parsePDBFile = function (str) {
+        let lines = str.split("\n");
 
         // clear any previous molecule data
         atoms.length = 0;
 
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i]; //.replace(/^\s*/, ''); // remove indent
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i]; //.replace(/^\s*/, ''); // remove indent
 
-            var recordName = line.substr(0, 6).trim();
+            let recordName = line.substr(0, 6).trim();
 
             if (recordName === "ATOM" || recordName === "HETATM") {
-                var serial = parseInt(line.substr(6, 5).trim());
-                var atomType = line.substr(12, 4).trim();
-                var resName = line.substr(17, 3).trim();
-                var chainID = line.substr(21, 1).trim();
-                var residue = parseInt(line.substr(22, 5).trim());
-                var x = parseFloat(line.substr(30, 8).trim());
-                var y = parseFloat(line.substr(38, 8).trim());
-                var z = parseFloat(line.substr(46, 8).trim());
-                var rad = parseFloat(line.substr(60, 8).trim());
-                var element = line.substr(76, 2).trim();
+                let serial = parseInt(line.substr(6, 5).trim());
+                let atomType = line.substr(12, 4).trim();
+                let resName = line.substr(17, 3).trim();
+                let chainID = line.substr(21, 1).trim();
+                let residue = parseInt(line.substr(22, 5).trim());
+                let x = parseFloat(line.substr(30, 8).trim());
+                let y = parseFloat(line.substr(38, 8).trim());
+                let z = parseFloat(line.substr(46, 8).trim());
+                let rad = parseFloat(line.substr(60, 8).trim());
+                let element = line.substr(76, 2).trim();
 
                 if (element === "") {
                     element = atomType;
                 }
 
-                var hetFlag = false;
+                let hetFlag = false;
                 if (line[0] === "H") {
                     hetFlag = true;
                 }
 
-                var radVDW = VDWList[element];
-                var col = colours[element];
+                let radVDW = VDWList[element];
+                let col = colours[element];
 
                 if (col === undefined) {
                     col = [0.5, 0.5, 0.5];
@@ -125,7 +125,7 @@ var MoleculeLoader = (function () {
                     rad = 1;
                 }
 
-                var atom = {
+                let atom = {
                     serial: serial,
                     atom: atomType,
                     resName: resName,
@@ -149,7 +149,7 @@ var MoleculeLoader = (function () {
         }
     };
 
-    var download = function (pdbID) {
+    let download = function (pdbID) {
         protein.pdbID = pdbID.toUpperCase();
 
         if (!protein.pdbID.match(/^[1-9][A-Za-z0-9]{3}$/)) {
@@ -157,7 +157,7 @@ var MoleculeLoader = (function () {
             return Promise.reject("Invalid PDB ID");
         }
 
-        var url = "https://files.rcsb.org/view/" + protein.pdbID + ".pdb";
+        let url = "https://files.rcsb.org/view/" + protein.pdbID + ".pdb";
 
         return fetch(url)
             .then(function (response) {
@@ -168,16 +168,16 @@ var MoleculeLoader = (function () {
             });
     };
 
-    var centerMoleculeOnMidPoint = function (midPoint) {
-        for (var i = 0; i < atoms.length; i++) {
+    let centerMoleculeOnMidPoint = function (midPoint) {
+        for (let i = 0; i < atoms.length; i++) {
             vec3.subtract(atoms[i].position, atoms[i].position, midPoint);
         }
     };
 
-    var getMidPoint = function () {
-        var middle = vec3.create();
+    let getMidPoint = function () {
+        let middle = vec3.create();
 
-        for (var i = 0; i < atoms.length; i++) {
+        for (let i = 0; i < atoms.length; i++) {
             vec3.add(middle, middle, atoms[i].position);
         }
 
@@ -186,14 +186,14 @@ var MoleculeLoader = (function () {
         return middle;
     };
 
-    var getFurthestDistanceToMidPoint = function (midPoint) {
-        var maxDistance = 0;
+    let getFurthestDistanceToMidPoint = function (midPoint) {
+        let maxDistance = 0;
 
-        for (var i = 0; i < atoms.length; i++) {
-            var dir = vec3.create();
+        for (let i = 0; i < atoms.length; i++) {
+            let dir = vec3.create();
             vec3.subtract(dir, midPoint, atoms[i].position);
 
-            var dist = vec3.length(dir);
+            let dist = vec3.length(dir);
 
             if (dist > maxDistance) {
                 maxDistance = dist;
@@ -203,23 +203,23 @@ var MoleculeLoader = (function () {
         return maxDistance;
     };
 
-    var getBoundingBox = function () {
-        var firstPos = atoms[0].position;
-        var firstRad = atoms[0].radius;
+    let getBoundingBox = function () {
+        let firstPos = atoms[0].position;
+        let firstRad = atoms[0].radius;
 
-        var min = vec3.create();
+        let min = vec3.create();
         min[0] = firstPos[0] - firstRad;
         min[1] = firstPos[1] - firstRad;
         min[2] = firstPos[2] - firstRad;
 
-        var max = vec3.create();
+        let max = vec3.create();
         max[0] = firstPos[0] + firstRad;
         max[1] = firstPos[1] + firstRad;
         max[2] = firstPos[2] + firstRad;
 
-        for (var i = 1; i < atoms.length; i++) {
-            var pos = atoms[i].position;
-            var rad = atoms[i].radius;
+        for (let i = 1; i < atoms.length; i++) {
+            let pos = atoms[i].position;
+            let rad = atoms[i].radius;
 
             if (pos[0] - rad < min[0]) {
                 min[0] = pos[0] - rad;
@@ -246,9 +246,9 @@ var MoleculeLoader = (function () {
         };
     };
 
-    var getMaxRadius = function () {
-        var max = atoms[0].radius;
-        for (var i = 1; i < atoms.length; i++) {
+    let getMaxRadius = function () {
+        let max = atoms[0].radius;
+        for (let i = 1; i < atoms.length; i++) {
             if (atoms[i].radius > max) {
                 max = atoms[i].radius;
             }
@@ -256,7 +256,7 @@ var MoleculeLoader = (function () {
         return max;
     };
 
-    var getMolecule = function () {
+    let getMolecule = function () {
         return {
             atoms: atoms,
             protein: protein,

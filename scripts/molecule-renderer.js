@@ -1,16 +1,16 @@
 /*global ShaderLoader*/
 
-var MoleculeRenderer = (function (ShaderLoader) {
+let MoleculeRenderer = (function (ShaderLoader) {
     "use strict";
 
-    var gl;
+    let gl;
 
-    var cubeVertexPositionBuffer;
-    var cubeVertexIndexBuffer;
+    let cubeVertexPositionBuffer;
+    let cubeVertexIndexBuffer;
 
-    var initBuffers = function () {
+    let initBuffers = function () {
         // prettier-ignore
-        var vertices = [
+        let vertices = [
             // Front face
             -1.0, -1.0, 1.0,
             1.0, -1.0, 1.0,
@@ -48,7 +48,7 @@ var MoleculeRenderer = (function (ShaderLoader) {
             -1.0, 1.0, -1.0
         ];
         // prettier-ignore
-        var indices = [
+        let indices = [
             0, 1, 2, 0, 2, 3,  // front
             4, 5, 6, 4, 6, 7,  // back
             8, 9, 10, 8, 10, 11, // top
@@ -70,7 +70,7 @@ var MoleculeRenderer = (function (ShaderLoader) {
         cubeVertexIndexBuffer.numItems = indices.length;
     };
 
-    var initShader = function (program) {
+    let initShader = function (program) {
         // attributes
 
         program.vertexPositionAttribute = gl.getAttribLocation(program, "aPosition");
@@ -89,12 +89,12 @@ var MoleculeRenderer = (function (ShaderLoader) {
         return program;
     };
 
-    var loadShaders = function () {
+    let loadShaders = function () {
         return ShaderLoader.loadProgram("molecule", "shaders/molecule.vert", "shaders/molecule.frag", initShader);
     };
 
-    var render = function (atoms, camera, mMatrix) {
-        var shader = ShaderLoader.getShader("molecule");
+    let render = function (atoms, camera, mMatrix) {
+        let shader = ShaderLoader.getShader("molecule");
 
         gl.useProgram(shader);
 
@@ -114,7 +114,7 @@ var MoleculeRenderer = (function (ShaderLoader) {
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
 
-        for (var i = 0; i < atoms.length; i++) {
+        for (let i = 0; i < atoms.length; i++) {
             gl.uniform3f(
                 shader.instancePositionUniform,
                 atoms[i].position[0],
@@ -133,7 +133,7 @@ var MoleculeRenderer = (function (ShaderLoader) {
         gl.useProgram(null);
     };
 
-    var init = function (ctx) {
+    let init = function (ctx) {
         gl = ctx;
         initBuffers();
         return loadShaders();

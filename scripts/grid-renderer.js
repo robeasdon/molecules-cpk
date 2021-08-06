@@ -1,16 +1,16 @@
 /*global ShaderLoader, Utilities, vec3, mat4*/
 
-var GridRenderer = (function (ShaderLoader, Utilities) {
+let GridRenderer = (function (ShaderLoader, Utilities) {
     "use strict";
 
-    var gl;
+    let gl;
 
-    var cubeVertexPositionBuffer;
-    var cubeVertexIndexBuffer;
+    let cubeVertexPositionBuffer;
+    let cubeVertexIndexBuffer;
 
-    var initBuffers = function () {
+    let initBuffers = function () {
         // prettier-ignore
-        var vertices = [
+        let vertices = [
             // front
             0, 0, 1,
             1, 0, 1,
@@ -23,7 +23,7 @@ var GridRenderer = (function (ShaderLoader, Utilities) {
             1, 0, 0
         ];
         // prettier-ignore
-        var indices = [
+        let indices = [
             0, 1, 1, 2, 2, 3, 3, 0, // front
             4, 5, 5, 6, 6, 7, 7, 4, // back
             // connect front to back
@@ -46,7 +46,7 @@ var GridRenderer = (function (ShaderLoader, Utilities) {
         cubeVertexIndexBuffer.numItems = indices.length;
     };
 
-    var initShader = function (program) {
+    let initShader = function (program) {
         // attributes
 
         program.vertexPositionAttribute = gl.getAttribLocation(program, "aPosition");
@@ -64,12 +64,12 @@ var GridRenderer = (function (ShaderLoader, Utilities) {
         return program;
     };
 
-    var loadShaders = function () {
+    let loadShaders = function () {
         return ShaderLoader.loadProgram("grid", "shaders/grid.vert", "shaders/grid.frag", initShader);
     };
 
-    var render = function (grid, camera, mMatrix, params) {
-        var shader = ShaderLoader.getShader("grid");
+    let render = function (grid, camera, mMatrix, params) {
+        let shader = ShaderLoader.getShader("grid");
 
         gl.useProgram(shader);
 
@@ -91,14 +91,14 @@ var GridRenderer = (function (ShaderLoader, Utilities) {
 
         // 3d-dda cells
 
-        var inverseVPMatrix = mat4.create();
-        var vpMatrix = mat4.create();
+        let inverseVPMatrix = mat4.create();
+        let vpMatrix = mat4.create();
 
         mat4.multiply(vpMatrix, camera.pMatrix, camera.vMatrix);
         mat4.invert(inverseVPMatrix, vpMatrix);
 
-        var ro = vec3.fromValues(camera.position[0], camera.position[1], camera.position[2]);
-        var rd = Utilities.getEyeRay(
+        let ro = vec3.fromValues(camera.position[0], camera.position[1], camera.position[2]);
+        let rd = Utilities.getEyeRay(
             camera.position,
             inverseVPMatrix,
             (params.mouse.lastX / params.screenWidth) * 2 - 1,
@@ -106,25 +106,25 @@ var GridRenderer = (function (ShaderLoader, Utilities) {
         );
         vec3.normalize(rd, rd);
 
-        var gridMax = vec3.create();
-        var gridNumBoxes = vec3.fromValues(grid.numBoxesX, grid.numBoxesY, grid.numBoxesZ);
+        let gridMax = vec3.create();
+        let gridNumBoxes = vec3.fromValues(grid.numBoxesX, grid.numBoxesY, grid.numBoxesZ);
         vec3.scale(gridMax, gridNumBoxes, grid.cellSize);
         vec3.add(gridMax, gridMax, grid.min);
 
-        var rayOrigin = Utilities.toLocal(ro, mMatrix);
-        var rayDir = Utilities.toLocal(rd, mMatrix);
+        let rayOrigin = Utilities.toLocal(ro, mMatrix);
+        let rayDir = Utilities.toLocal(rd, mMatrix);
 
-        var intersect = Utilities.intersectRayAABB(rayOrigin, rayDir, grid.min, gridMax);
+        let intersect = Utilities.intersectRayAABB(rayOrigin, rayDir, grid.min, gridMax);
         intersect.t0 += 0.001;
 
         if (intersect.hit) {
-            var index = grid.getObjectGridIndex3D(rayOrigin);
-            var indexX = index[0];
-            var indexY = index[1];
-            var indexZ = index[2];
+            let index = grid.getObjectGridIndex3D(rayOrigin);
+            let indexX = index[0];
+            let indexY = index[1];
+            let indexZ = index[2];
 
             if (!grid.insideGrid(indexX, indexY, indexZ)) {
-                var temp = vec3.create();
+                let temp = vec3.create();
                 vec3.scale(temp, rayDir, intersect.t0);
                 vec3.add(rayOrigin, rayOrigin, temp);
 
@@ -134,30 +134,30 @@ var GridRenderer = (function (ShaderLoader, Utilities) {
                 indexZ = index[2];
             }
 
-            var tDeltaX = Math.abs(grid.cellSize / rayDir[0]);
-            var tDeltaY = Math.abs(grid.cellSize / rayDir[1]);
-            var tDeltaZ = Math.abs(grid.cellSize / rayDir[2]);
+            let tDeltaX = Math.abs(grid.cellSize / rayDir[0]);
+            let tDeltaY = Math.abs(grid.cellSize / rayDir[1]);
+            let tDeltaZ = Math.abs(grid.cellSize / rayDir[2]);
 
-            var stepX = (rayDir[0] > 0) - (rayDir[0] < 0);
-            var stepY = (rayDir[1] > 0) - (rayDir[1] < 0);
-            var stepZ = (rayDir[2] > 0) - (rayDir[2] < 0);
+            let stepX = (rayDir[0] > 0) - (rayDir[0] < 0);
+            let stepY = (rayDir[1] > 0) - (rayDir[1] < 0);
+            let stepZ = (rayDir[2] > 0) - (rayDir[2] < 0);
 
-            var cellBoundsMin = grid.getCellMinPoint(indexX, indexY, indexZ);
-            var cellBoundsMax = grid.getCellMaxPoint(indexX, indexY, indexZ);
+            let cellBoundsMin = grid.getCellMinPoint(indexX, indexY, indexZ);
+            let cellBoundsMax = grid.getCellMaxPoint(indexX, indexY, indexZ);
 
-            var tMaxNegX = (cellBoundsMin[0] - rayOrigin[0]) / rayDir[0];
-            var tMaxNegY = (cellBoundsMin[1] - rayOrigin[1]) / rayDir[1];
-            var tMaxNegZ = (cellBoundsMin[2] - rayOrigin[2]) / rayDir[2];
+            let tMaxNegX = (cellBoundsMin[0] - rayOrigin[0]) / rayDir[0];
+            let tMaxNegY = (cellBoundsMin[1] - rayOrigin[1]) / rayDir[1];
+            let tMaxNegZ = (cellBoundsMin[2] - rayOrigin[2]) / rayDir[2];
 
-            var tMaxPosX = (cellBoundsMax[0] - rayOrigin[0]) / rayDir[0];
-            var tMaxPosY = (cellBoundsMax[1] - rayOrigin[1]) / rayDir[1];
-            var tMaxPosZ = (cellBoundsMax[2] - rayOrigin[2]) / rayDir[2];
+            let tMaxPosX = (cellBoundsMax[0] - rayOrigin[0]) / rayDir[0];
+            let tMaxPosY = (cellBoundsMax[1] - rayOrigin[1]) / rayDir[1];
+            let tMaxPosZ = (cellBoundsMax[2] - rayOrigin[2]) / rayDir[2];
 
-            var tMaxX = rayDir[0] < 0 ? tMaxNegX : tMaxPosX;
-            var tMaxY = rayDir[1] < 0 ? tMaxNegY : tMaxPosY;
-            var tMaxZ = rayDir[2] < 0 ? tMaxNegZ : tMaxPosZ;
+            let tMaxX = rayDir[0] < 0 ? tMaxNegX : tMaxPosX;
+            let tMaxY = rayDir[1] < 0 ? tMaxNegY : tMaxPosY;
+            let tMaxZ = rayDir[2] < 0 ? tMaxNegZ : tMaxPosZ;
 
-            var done = false;
+            let done = false;
 
             while (!done) {
                 gl.uniform3f(
@@ -194,9 +194,9 @@ var GridRenderer = (function (ShaderLoader, Utilities) {
             }
         }
 
-        for (var x = 0; x < grid.numBoxesX; x++) {
-            for (var y = 0; y < grid.numBoxesY; y++) {
-                for (var z = 0; z < grid.numBoxesZ; z++) {
+        for (let x = 0; x < grid.numBoxesX; x++) {
+            for (let y = 0; y < grid.numBoxesY; y++) {
+                for (let z = 0; z < grid.numBoxesZ; z++) {
                     gl.uniform3f(
                         shader.instancePositionUniform,
                         grid.min[0] + x * grid.cellSize,
@@ -217,7 +217,7 @@ var GridRenderer = (function (ShaderLoader, Utilities) {
         gl.useProgram(null);
     };
 
-    var init = function (ctx) {
+    let init = function (ctx) {
         gl = ctx;
         initBuffers();
         return loadShaders();

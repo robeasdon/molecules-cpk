@@ -1,22 +1,22 @@
 /*global vec3, mat4, Grid, GridRenderer, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, Utilities*/
 
-var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities) {
+let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities) {
     "use strict";
 
-    var gl;
-    var exts = {};
+    let gl;
+    let exts = {};
 
     let canvas;
 
-    var settings = {
+    let settings = {
         canvasSelector: "#canvas",
         width: 512,
         height: 512,
     };
 
-    var redrawRequested = false;
+    let redrawRequested = false;
 
-    var renderSettings = {
+    let renderSettings = {
         aoIntensity: 0.25,
         altitude: 60,
         azimuth: 60,
@@ -24,10 +24,10 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         mode: 5,
     };
 
-    var molecule = {};
-    var atoms = [];
+    let molecule = {};
+    let atoms = [];
 
-    var camera = {
+    let camera = {
         vMatrix: mat4.create(),
         pMatrix: mat4.create(),
         position: vec3.create(),
@@ -36,39 +36,39 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         zoom: 0,
     };
 
-    var light = {
+    let light = {
         position: vec3.fromValues(0, 0, 1),
         vMatrix: mat4.create(),
         pMatrix: mat4.create(),
     };
 
-    var mMatrix = mat4.create();
+    let mMatrix = mat4.create();
 
-    var planemMatrix = mat4.create();
-    var basePlaneVertexPositionBuffer;
-    var basePlaneY;
+    let planemMatrix = mat4.create();
+    let basePlaneVertexPositionBuffer;
+    let basePlaneY;
 
-    var grid = {};
-    var pickingGrid = {};
-    var selectedID = -1;
+    let grid = {};
+    let pickingGrid = {};
+    let selectedID = -1;
 
-    var mouse = {
+    let mouse = {
         down: false,
         lastX: null,
         lastY: null,
     };
 
-    var initBasePlane = function () {
+    let initBasePlane = function () {
         basePlaneVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, basePlaneVertexPositionBuffer);
-        var vertices = [-1.0, 0.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, -1.0];
+        let vertices = [-1.0, 0.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, -1.0];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         basePlaneVertexPositionBuffer.itemSize = 3;
         basePlaneVertexPositionBuffer.numItems = 4;
     };
 
-    var renderBasePlane = function () {
-        var shader = ShaderLoader.getShader("geom-pass");
+    let renderBasePlane = function () {
+        let shader = ShaderLoader.getShader("geom-pass");
 
         gl.useProgram(shader);
 
@@ -97,7 +97,7 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         gl.useProgram(null);
     };
 
-    var render = function () {
+    let render = function () {
         redrawRequested = false;
 
         DeferredRenderer.beginGeometryPass();
@@ -120,8 +120,8 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
 
         DeferredRenderer.endGeometryPass();
 
-        var azimuth = Utilities.degToRad(renderSettings.azimuth);
-        var altitude = Utilities.degToRad(renderSettings.altitude);
+        let azimuth = Utilities.degToRad(renderSettings.azimuth);
+        let altitude = Utilities.degToRad(renderSettings.altitude);
 
         light.position[0] = camera.zoom * 1.2 * Math.sin(altitude) * Math.cos(azimuth);
         light.position[1] = camera.zoom * 1.2 * Math.cos(altitude);
@@ -130,7 +130,7 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         DeferredRenderer.renderLightPass(camera, light, mMatrix, renderSettings);
     };
 
-    var requestRedraw = function () {
+    let requestRedraw = function () {
         if (redrawRequested) {
             return;
         }
@@ -139,18 +139,18 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         window.requestAnimationFrame(render);
     };
 
-    var calcGrid = function () {
-        var boundingBox = MoleculeLoader.getBoundingBox();
-        var maxRadius = MoleculeLoader.getMaxRadius();
+    let calcGrid = function () {
+        let boundingBox = MoleculeLoader.getBoundingBox();
+        let maxRadius = MoleculeLoader.getMaxRadius();
 
         grid = new Grid();
         grid.init(boundingBox.min, boundingBox.max, maxRadius * 2);
 
-        for (var i = 0; i < atoms.length; i++) {
-            var index3D = grid.getObjectGridIndex3D(atoms[i].position);
+        for (let i = 0; i < atoms.length; i++) {
+            let index3D = grid.getObjectGridIndex3D(atoms[i].position);
 
             if (grid.insideGrid(index3D[0], index3D[1], index3D[2])) {
-                var index = parseInt(
+                let index = parseInt(
                     index3D[2] * grid.numBoxesX * grid.numBoxesY + index3D[1] * grid.numBoxesX + index3D[0]
                 );
 
@@ -165,24 +165,24 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         pickingGrid = new Grid();
         pickingGrid.init(boundingBox.min, boundingBox.max, maxRadius * 2);
 
-        for (var i = 0; i < atoms.length; i++) {
+        for (let i = 0; i < atoms.length; i++) {
             // get the atoms grid index at its center
-            var atomIndex3D = pickingGrid.getObjectGridIndex3D(atoms[i].position);
+            let atomIndex3D = pickingGrid.getObjectGridIndex3D(atoms[i].position);
 
             // loop through the cell, as well as the surrounding cells, and check if the atom intersects with the cells
-            for (var x = -1; x < 2; x++) {
-                for (var y = -1; y < 2; y++) {
-                    for (var z = -1; z < 2; z++) {
-                        var cellX = atomIndex3D[0] + x;
-                        var cellY = atomIndex3D[1] + y;
-                        var cellZ = atomIndex3D[2] + z;
+            for (let x = -1; x < 2; x++) {
+                for (let y = -1; y < 2; y++) {
+                    for (let z = -1; z < 2; z++) {
+                        let cellX = atomIndex3D[0] + x;
+                        let cellY = atomIndex3D[1] + y;
+                        let cellZ = atomIndex3D[2] + z;
 
                         if (pickingGrid.insideGrid(cellX, cellY, cellZ)) {
-                            var min = pickingGrid.getCellMinPoint(cellX, cellY, cellZ);
-                            var max = pickingGrid.getCellMaxPoint(cellX, cellY, cellZ);
+                            let min = pickingGrid.getCellMinPoint(cellX, cellY, cellZ);
+                            let max = pickingGrid.getCellMaxPoint(cellX, cellY, cellZ);
 
                             if (Utilities.intersectSphereAABB(atoms[i].position, atoms[i].radius, min, max)) {
-                                var index =
+                                let index =
                                     cellZ * pickingGrid.numBoxesX * pickingGrid.numBoxesY +
                                     cellY * pickingGrid.numBoxesX +
                                     cellX;
@@ -200,12 +200,12 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         }
     };
 
-    var picking = function (x, y) {
+    let picking = function (x, y) {
         mat4.multiply(camera.vpMatrix, camera.pMatrix, camera.vMatrix);
         mat4.invert(camera.inverseVPMatrix, camera.vpMatrix);
 
-        var origin = vec3.fromValues(camera.position[0], camera.position[1], camera.position[2]);
-        var direction = Utilities.getEyeRay(
+        let origin = vec3.fromValues(camera.position[0], camera.position[1], camera.position[2]);
+        let direction = Utilities.getEyeRay(
             camera.position,
             camera.inverseVPMatrix,
             (x / settings.width) * 2 - 1,
@@ -214,31 +214,31 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         vec3.normalize(direction, direction);
 
         selectedID = -1;
-        var tmin = Number.MAX_VALUE;
+        let tmin = Number.MAX_VALUE;
 
-        var gridMax = vec3.create();
-        var gridNumBoxes = vec3.fromValues(pickingGrid.numBoxesX, pickingGrid.numBoxesY, pickingGrid.numBoxesZ);
+        let gridMax = vec3.create();
+        let gridNumBoxes = vec3.fromValues(pickingGrid.numBoxesX, pickingGrid.numBoxesY, pickingGrid.numBoxesZ);
         vec3.scale(gridMax, gridNumBoxes, pickingGrid.cellSize);
         vec3.add(gridMax, gridMax, pickingGrid.min);
 
-        var rayOrigin = Utilities.toLocal(origin, mMatrix);
-        var rayDir = Utilities.toLocal(direction, mMatrix);
+        let rayOrigin = Utilities.toLocal(origin, mMatrix);
+        let rayDir = Utilities.toLocal(direction, mMatrix);
 
-        var intersect = Utilities.intersectRayAABB(rayOrigin, rayDir, grid.min, gridMax);
+        let intersect = Utilities.intersectRayAABB(rayOrigin, rayDir, grid.min, gridMax);
         intersect.t0 += 0.001;
 
-        for (var i = 0; i < atoms.length; i++) {
+        for (let i = 0; i < atoms.length; i++) {
             atoms[i].tested = false;
         }
 
         if (intersect.hit) {
-            var index = pickingGrid.getObjectGridIndex3D(rayOrigin);
-            var indexX = index[0];
-            var indexY = index[1];
-            var indexZ = index[2];
+            let index = pickingGrid.getObjectGridIndex3D(rayOrigin);
+            let indexX = index[0];
+            let indexY = index[1];
+            let indexZ = index[2];
 
             if (!pickingGrid.insideGrid(indexX, indexY, indexZ)) {
-                var temp = vec3.create();
+                let temp = vec3.create();
                 vec3.scale(temp, rayDir, intersect.t0);
                 vec3.add(rayOrigin, rayOrigin, temp);
 
@@ -248,48 +248,48 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
                 indexZ = index[2];
             }
 
-            var tDeltaX = Math.abs(pickingGrid.cellSize / rayDir[0]);
-            var tDeltaY = Math.abs(pickingGrid.cellSize / rayDir[1]);
-            var tDeltaZ = Math.abs(pickingGrid.cellSize / rayDir[2]);
+            let tDeltaX = Math.abs(pickingGrid.cellSize / rayDir[0]);
+            let tDeltaY = Math.abs(pickingGrid.cellSize / rayDir[1]);
+            let tDeltaZ = Math.abs(pickingGrid.cellSize / rayDir[2]);
 
-            var stepX = (rayDir[0] > 0) - (rayDir[0] < 0);
-            var stepY = (rayDir[1] > 0) - (rayDir[1] < 0);
-            var stepZ = (rayDir[2] > 0) - (rayDir[2] < 0);
+            let stepX = (rayDir[0] > 0) - (rayDir[0] < 0);
+            let stepY = (rayDir[1] > 0) - (rayDir[1] < 0);
+            let stepZ = (rayDir[2] > 0) - (rayDir[2] < 0);
 
-            var cellBoundsMin = pickingGrid.getCellMinPoint(indexX, indexY, indexZ);
-            var cellBoundsMax = pickingGrid.getCellMaxPoint(indexX, indexY, indexZ);
+            let cellBoundsMin = pickingGrid.getCellMinPoint(indexX, indexY, indexZ);
+            let cellBoundsMax = pickingGrid.getCellMaxPoint(indexX, indexY, indexZ);
 
-            var tMaxNegX = (cellBoundsMin[0] - rayOrigin[0]) / rayDir[0];
-            var tMaxNegY = (cellBoundsMin[1] - rayOrigin[1]) / rayDir[1];
-            var tMaxNegZ = (cellBoundsMin[2] - rayOrigin[2]) / rayDir[2];
+            let tMaxNegX = (cellBoundsMin[0] - rayOrigin[0]) / rayDir[0];
+            let tMaxNegY = (cellBoundsMin[1] - rayOrigin[1]) / rayDir[1];
+            let tMaxNegZ = (cellBoundsMin[2] - rayOrigin[2]) / rayDir[2];
 
-            var tMaxPosX = (cellBoundsMax[0] - rayOrigin[0]) / rayDir[0];
-            var tMaxPosY = (cellBoundsMax[1] - rayOrigin[1]) / rayDir[1];
-            var tMaxPosZ = (cellBoundsMax[2] - rayOrigin[2]) / rayDir[2];
+            let tMaxPosX = (cellBoundsMax[0] - rayOrigin[0]) / rayDir[0];
+            let tMaxPosY = (cellBoundsMax[1] - rayOrigin[1]) / rayDir[1];
+            let tMaxPosZ = (cellBoundsMax[2] - rayOrigin[2]) / rayDir[2];
 
-            var tMaxX = rayDir[0] < 0 ? tMaxNegX : tMaxPosX;
-            var tMaxY = rayDir[1] < 0 ? tMaxNegY : tMaxPosY;
-            var tMaxZ = rayDir[2] < 0 ? tMaxNegZ : tMaxPosZ;
+            let tMaxX = rayDir[0] < 0 ? tMaxNegX : tMaxPosX;
+            let tMaxY = rayDir[1] < 0 ? tMaxNegY : tMaxPosY;
+            let tMaxZ = rayDir[2] < 0 ? tMaxNegZ : tMaxPosZ;
 
-            var done = false;
+            let done = false;
 
             while (!done) {
-                var index1D = parseInt(
+                let index1D = parseInt(
                     indexZ * pickingGrid.numBoxesX * pickingGrid.numBoxesY + indexY * pickingGrid.numBoxesX + indexX
                 );
 
-                var cell = pickingGrid.cells[index1D];
+                let cell = pickingGrid.cells[index1D];
 
                 // todo
                 // use grid where atoms can be in more than once cell
                 // counter possible mulitple collision tests using technique from woo
 
                 if (cell !== undefined) {
-                    for (var i = 0; i < cell.length; i++) {
-                        var id = cell[i];
+                    for (let i = 0; i < cell.length; i++) {
+                        let id = cell[i];
 
                         if (!atoms[id].tested) {
-                            var t = Utilities.intersectRaySphere(
+                            let t = Utilities.intersectRaySphere(
                                 rayOrigin,
                                 rayDir,
                                 atoms[id].position,
@@ -330,13 +330,13 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         return atoms[selectedID];
     };
 
-    var setupMolecule = function () {
+    let setupMolecule = function () {
         molecule = MoleculeLoader.getMolecule();
         atoms = molecule.atoms;
 
-        var midPoint = MoleculeLoader.getMidPoint();
-        var maxRadius = MoleculeLoader.getMaxRadius();
-        var furthestDist = MoleculeLoader.getFurthestDistanceToMidPoint(midPoint);
+        let midPoint = MoleculeLoader.getMidPoint();
+        let maxRadius = MoleculeLoader.getMaxRadius();
+        let furthestDist = MoleculeLoader.getFurthestDistanceToMidPoint(midPoint);
 
         basePlaneY = furthestDist + maxRadius;
         camera.position[2] = camera.zoom = furthestDist / Math.tan(45 * 0.5 * (Math.PI / 180.0)) + maxRadius;
@@ -350,28 +350,28 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         DeferredRenderer.calcOccluders(atoms, grid);
     };
 
-    var handleMouseDown = function (event) {
+    let handleMouseDown = function (event) {
         if (event.which === 1) {
             mouse.down = true;
         }
     };
 
-    var handleMouseUp = function (event) {
+    let handleMouseUp = function (event) {
         if (event.which === 1) {
             mouse.down = false;
         }
     };
 
-    var handleMouseMove = function (event) {
+    let handleMouseMove = function (event) {
         requestRedraw();
 
         if (mouse.down) {
-            var moleculeRotationMatrix = mat4.create();
+            let moleculeRotationMatrix = mat4.create();
 
-            var deltaX = event.clientX - mouse.lastX;
+            let deltaX = event.clientX - mouse.lastX;
             mat4.rotate(moleculeRotationMatrix, moleculeRotationMatrix, Utilities.degToRad(deltaX / 10), [0, 1, 0]);
 
-            var deltaY = event.clientY - mouse.lastY;
+            let deltaY = event.clientY - mouse.lastY;
             mat4.rotate(moleculeRotationMatrix, moleculeRotationMatrix, Utilities.degToRad(deltaY / 10), [1, 0, 0]);
 
             mat4.multiply(mMatrix, moleculeRotationMatrix, mMatrix);
@@ -381,46 +381,46 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         mouse.lastY = event.clientY;
     };
 
-    var handleMouseWheel = function (event) {
+    let handleMouseWheel = function (event) {
         requestRedraw();
 
-        var delta = event.wheelDelta ? event.wheelDelta / 40 : event.detail ? -event.detail : 0;
+        let delta = event.wheelDelta ? event.wheelDelta / 40 : event.detail ? -event.detail : 0;
         camera.position[2] -= delta * 0.5;
     };
 
-    var getImageDataURL = function () {
+    let getImageDataURL = function () {
         return canvas.toDataURL("image/jpeg");
     };
 
-    var updateRenderSettings = function (options) {
+    let updateRenderSettings = function (options) {
         renderSettings = { ...renderSettings, ...options };
     };
 
-    var bindEventListeners = function () {
+    let bindEventListeners = function () {
         canvas.addEventListener("mousedown", handleMouseDown);
         canvas.addEventListener("mouseup", handleMouseUp);
         canvas.addEventListener("mousemove", handleMouseMove);
         canvas.addEventListener("wheel", handleMouseWheel);
     };
 
-    var loadFromFile = function (str) {
+    let loadFromFile = function (str) {
         MoleculeLoader.parsePDBFile(str);
         setupMolecule();
         requestRedraw();
     };
 
-    var download = function (pdbID) {
+    let download = function (pdbID) {
         return MoleculeLoader.download(pdbID).then(function () {
             setupMolecule();
             requestRedraw();
         });
     };
 
-    var getProtein = function () {
+    let getProtein = function () {
         return MoleculeLoader.getMolecule().protein;
     };
 
-    var initGL = function () {
+    let initGL = function () {
         gl.clearColor(1.0, 1.0, 1.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
@@ -430,7 +430,7 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         gl.disable(gl.BLEND);
     };
 
-    var initExtentions = function () {
+    let initExtentions = function () {
         exts.fragDepth = gl.getExtension("EXT_frag_depth");
         exts.drawBuffers = gl.getExtension("WEBGL_draw_buffers");
         exts.textureFloat = gl.getExtension("OES_texture_float");
@@ -441,7 +441,7 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         return exts.fragDepth && exts.drawBuffers && exts.textureFloat && exts.textureFloatLinear && exts.depthTexture;
     };
 
-    var resize = function (width, height) {
+    let resize = function (width, height) {
         requestRedraw();
 
         canvas.width = width;
@@ -457,7 +457,7 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
         mat4.perspective(camera.pMatrix, 45, width / height, 1.0, 1000.0);
     };
 
-    var init = function (options) {
+    let init = function (options) {
         settings = { ...settings, ...options };
         canvas = document.querySelector(settings.canvasSelector);
         gl = canvas.getContext("experimental-webgl", {
@@ -474,7 +474,7 @@ var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
 
         ShaderLoader.init(gl);
 
-        var initPromises = [];
+        let initPromises = [];
         initPromises.push(
             DeferredRenderer.init(gl, exts, {
                 width: settings.width,

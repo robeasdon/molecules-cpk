@@ -31,7 +31,7 @@ window.addEventListener("DOMContentLoaded", function () {
             });
 
             window.addEventListener("mousemove", function (event) {
-                var atom = Viewer.picking(event.clientX, event.clientY);
+                let atom = Viewer.picking(event.clientX, event.clientY);
                 UI.updateAtomInfo(atom);
             });
         })

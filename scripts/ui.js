@@ -1,18 +1,18 @@
 /*global Viewer*/
 
-var UI = (function (Viewer) {
+let UI = (function (Viewer) {
     "use strict";
 
-    var rcsbURL = "https://www.rcsb.org/structure/";
+    let rcsbURL = "https://www.rcsb.org/structure/";
 
-    var fileInfo;
-    var atomInfo;
-    var loadButton;
-    var pdbID;
-    var loading;
-    var uiControls;
+    let fileInfo;
+    let atomInfo;
+    let loadButton;
+    let pdbID;
+    let loading;
+    let uiControls;
 
-    var updateFileInfo = function (protein) {
+    let updateFileInfo = function (protein) {
         fileInfo.innerHTML =
             '<a href="' +
             rcsbURL +
@@ -24,7 +24,7 @@ var UI = (function (Viewer) {
             protein.title;
     };
 
-    var updateAtomInfo = function (atom) {
+    let updateAtomInfo = function (atom) {
         if (atom === undefined) {
             return;
         }
@@ -32,16 +32,16 @@ var UI = (function (Viewer) {
         atomInfo.innerHTML = atom.atom + "<br>" + atom.resName + "<br>" + atom.chainID + "<br>" + atom.residue;
     };
 
-    var showLoading = function () {
+    let showLoading = function () {
         loading.style.display = "block";
     };
 
-    var hideLoading = function () {
+    let hideLoading = function () {
         loading.style.display = "none";
     };
 
-    var download = function () {
-        var pdbId = pdbID.value;
+    let download = function () {
+        let pdbId = pdbID.value;
 
         if (!pdbId) {
             return;
@@ -56,13 +56,13 @@ var UI = (function (Viewer) {
             .then(hideLoading);
     };
 
-    var bindEventListeners = function () {
-        var settings = {};
+    let bindEventListeners = function () {
+        let settings = {};
 
         uiControls.forEach(function (control) {
             control.addEventListener("change", function () {
-                var key = control.dataset.storageKey;
-                var value = control.value;
+                let key = control.dataset.storageKey;
+                let value = control.value;
 
                 if (control.type === "checkbox") {
                     value = control.checked;
@@ -79,19 +79,19 @@ var UI = (function (Viewer) {
         loadButton.addEventListener("click", download);
     };
 
-    var loadSettingsFromStorage = function () {
-        var settings = {};
+    let loadSettingsFromStorage = function () {
+        let settings = {};
 
         uiControls.forEach(function (control) {
-            var key = control.dataset.storageKey;
-            var storedValue = window.localStorage.getItem(key);
+            let key = control.dataset.storageKey;
+            let storedValue = window.localStorage.getItem(key);
 
             if (storedValue) {
                 control.value = storedValue;
                 settings[key] = storedValue;
 
                 if (control.type === "checkbox") {
-                    var checked = storedValue === "true";
+                    let checked = storedValue === "true";
                     control.checked = checked;
                     settings[key] = checked;
                 }
@@ -101,7 +101,7 @@ var UI = (function (Viewer) {
         Viewer.updateRenderSettings(settings);
     };
 
-    var init = function () {
+    let init = function () {
         fileInfo = document.querySelector("#file-info");
         atomInfo = document.querySelector("#atom-info");
         loadButton = document.querySelector("#load-molecule");
