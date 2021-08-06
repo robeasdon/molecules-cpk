@@ -1,6 +1,6 @@
-/*global jQuery, vec3, mat4, GBuffer, ShaderLoader, Utilities*/
+/*global vec3, mat4, GBuffer, ShaderLoader*/
 
-var DeferredRenderer = (function ($, GBuffer, ShaderLoader, Utilities) {
+var DeferredRenderer = (function (GBuffer, ShaderLoader) {
     "use strict";
 
     var gl;
@@ -141,7 +141,7 @@ var DeferredRenderer = (function ($, GBuffer, ShaderLoader, Utilities) {
                         }
                     }
                 }
-                
+
                 id++;
             }
         }
@@ -218,7 +218,7 @@ var DeferredRenderer = (function ($, GBuffer, ShaderLoader, Utilities) {
                 initLightPassShader
             )
         );
-        return $.when.apply($, promises);
+        return Promise.all(promises);
     };
 
     var renderLightPass = function (camera, light, mMatrix, settings) {
@@ -306,7 +306,7 @@ var DeferredRenderer = (function ($, GBuffer, ShaderLoader, Utilities) {
         });
 
         initQuad();
-        return $.when(loadShaders());
+        return loadShaders();
     };
 
     return {
@@ -317,4 +317,4 @@ var DeferredRenderer = (function ($, GBuffer, ShaderLoader, Utilities) {
         endGeometryPass: endGeometryPass,
         renderLightPass: renderLightPass,
     };
-})(jQuery, GBuffer, ShaderLoader, Utilities);
+})(GBuffer, ShaderLoader);

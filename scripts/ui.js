@@ -1,30 +1,27 @@
-/*global jQuery, Viewer*/
+/*global Viewer*/
 
-var UI = (function ($, Viewer) {
+var UI = (function (Viewer) {
     "use strict";
-
-    var reader = new FileReader();
 
     var rcsbURL = "https://www.rcsb.org/structure/";
 
-    var $fileInput = $("#file-input");
-    var $fileInfo = $("#file-info");
-    var $atomInfo = $("#atom-info");
-    var $loadButton = $("#load-molecule");
-    var $pdbID = $("#pdb-id");
-    var $loading = $("#loading");
+    var fileInfo;
+    var atomInfo;
+    var loadButton;
+    var pdbID;
+    var loading;
+    var uiControls;
 
     var updateFileInfo = function (protein) {
-        $fileInfo.html(
+        fileInfo.innerHTML =
             '<a href="' +
-                rcsbURL +
-                protein.pdbID +
-                '" target="_blank">' +
-                protein.pdbID +
-                "</a>" +
-                "<br>" +
-                protein.title
-        );
+            rcsbURL +
+            protein.pdbID +
+            '" target="_blank">' +
+            protein.pdbID +
+            "</a>" +
+            "<br>" +
+            protein.title;
     };
 
     var updateAtomInfo = function (atom) {
@@ -32,49 +29,19 @@ var UI = (function ($, Viewer) {
             return;
         }
 
-        $atomInfo.html(atom.atom + "<br>" + atom.resName + "<br>" + atom.chainID + "<br>" + atom.residue);
+        atomInfo.innerHTML = atom.atom + "<br>" + atom.resName + "<br>" + atom.chainID + "<br>" + atom.residue;
     };
 
     var showLoading = function () {
-        $loading.show();
+        loading.style.display = "block";
     };
 
     var hideLoading = function () {
-        $loading.hide();
-    };
-
-    var handleFileSelect = function (event) {
-        reader.onerror = function (e) {
-            switch (e.target.error.code) {
-                case event.target.error.NOT_FOUND_ERR:
-                    alert("File Not Found!");
-                    break;
-                case e.target.error.NOT_READABLE_ERR:
-                    alert("File is not readable");
-                    break;
-                case e.target.error.ABORT_ERR:
-                    break;
-                default:
-                    alert("An error occurred reading this file.");
-            }
-        };
-
-        reader.onabort = function () {
-            alert("File read cancelled");
-        };
-
-        reader.onload = function (e) {
-            showLoading();
-            Viewer.loadFromFile(e.target.result);
-            updateFileInfo(Viewer.getProtein());
-            hideLoading();
-        };
-
-        reader.readAsText(event.target.files[0]);
+        loading.style.display = "none";
     };
 
     var download = function () {
-        var pdbId = $pdbID.val();
+        var pdbId = pdbID.value;
 
         if (!pdbId) {
             return;
@@ -83,52 +50,49 @@ var UI = (function ($, Viewer) {
         showLoading();
 
         Viewer.download(pdbId)
-            .done(function () {
+            .then(function () {
                 updateFileInfo(Viewer.getProtein());
             })
-            .always(hideLoading);
+            .then(hideLoading);
     };
 
     var bindEventListeners = function () {
         var settings = {};
 
-        $(".ui-control").on("change", function () {
-            var $input = $(this);
-            var type = $input.attr("type");
-            var key = $input.data("storage-key");
-            var value = $input.val();
+        uiControls.forEach(function (control) {
+            control.addEventListener("change", function () {
+                var key = control.dataset.storageKey;
+                var value = control.value;
 
-            if (type === "checkbox") {
-                value = $input.prop("checked");
-            }
+                if (control.type === "checkbox") {
+                    value = control.checked;
+                }
 
-            settings[key] = value;
-            window.localStorage.setItem(key, value);
+                settings[key] = value;
+                window.localStorage.setItem(key, value);
 
-            Viewer.updateRenderSettings(settings);
-            Viewer.requestRedraw();
+                Viewer.updateRenderSettings(settings);
+                Viewer.requestRedraw();
+            });
         });
 
-        $fileInput.on("change", handleFileSelect);
-        $loadButton.on("click", download);
+        loadButton.addEventListener("click", download);
     };
 
     var loadSettingsFromStorage = function () {
         var settings = {};
 
-        $(".ui-control").each(function () {
-            var $input = $(this);
-            var type = $input.attr("type");
-            var key = $input.data("storage-key");
+        uiControls.forEach(function (control) {
+            var key = control.dataset.storageKey;
             var storedValue = window.localStorage.getItem(key);
 
             if (storedValue) {
-                $input.val(storedValue);
+                control.value = storedValue;
                 settings[key] = storedValue;
 
-                if (type === "checkbox") {
+                if (control.type === "checkbox") {
                     var checked = storedValue === "true";
-                    $input.prop("checked", checked);
+                    control.checked = checked;
                     settings[key] = checked;
                 }
             }
@@ -138,6 +102,13 @@ var UI = (function ($, Viewer) {
     };
 
     var init = function () {
+        fileInfo = document.querySelector("#file-info");
+        atomInfo = document.querySelector("#atom-info");
+        loadButton = document.querySelector("#load-molecule");
+        pdbID = document.querySelector("#pdb-id");
+        loading = document.querySelector("#loading");
+        uiControls = document.querySelectorAll(".ui-control");
+
         loadSettingsFromStorage();
         bindEventListeners();
     };
@@ -150,4 +121,4 @@ var UI = (function ($, Viewer) {
         showLoading: showLoading,
         hideLoading: hideLoading,
     };
-})(jQuery, Viewer);
+})(Viewer);

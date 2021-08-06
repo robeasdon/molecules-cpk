@@ -1,6 +1,4 @@
-/*global jQuery*/
-
-var ShaderLoader = (function ($) {
+var ShaderLoader = (function () {
     "use strict";
 
     var gl;
@@ -34,14 +32,14 @@ var ShaderLoader = (function ($) {
     };
 
     var loadShaderFromFile = function (url) {
-        return $.ajax(url, {
-            dataType: "text",
+        return fetch(url).then(function (response) {
+            return response.text();
         });
     };
 
     var loadProgram = function (name, vert, frag, initShader) {
-        return $.when(loadShaderFromFile(vert), loadShaderFromFile(frag)).done(function (vshader, fshader) {
-            var program = createProgram(vshader[0], fshader[0]);
+        return Promise.all([loadShaderFromFile(vert), loadShaderFromFile(frag)]).then(function ([vshader, fshader]) {
+            var program = createProgram(vshader, fshader);
             initShader(program);
             shaders[name] = program;
         });
@@ -60,4 +58,4 @@ var ShaderLoader = (function ($) {
         getShader: getShader,
         init: init,
     };
-})(jQuery);
+})();

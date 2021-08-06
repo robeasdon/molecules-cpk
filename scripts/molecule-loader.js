@@ -1,6 +1,6 @@
-/*global jQuery, vec3*/
+/*global vec3*/
 
-var MoleculeLoader = (function ($) {
+var MoleculeLoader = (function () {
     "use strict";
 
     var atoms = [];
@@ -154,16 +154,18 @@ var MoleculeLoader = (function ($) {
 
         if (!protein.pdbID.match(/^[1-9][A-Za-z0-9]{3}$/)) {
             alert("Invalid PDB ID");
-            return $.Deferred().reject("Invalid PDB ID");
+            return Promise.reject("Invalid PDB ID");
         }
 
         var url = "https://files.rcsb.org/view/" + protein.pdbID + ".pdb";
 
-        return $.ajax(url, {
-            dataType: "text",
-        }).done(function (text) {
-            parsePDBFile(text);
-        });
+        return fetch(url)
+            .then(function (response) {
+                return response.text();
+            })
+            .then(function (text) {
+                parsePDBFile(text);
+            });
     };
 
     var centerMoleculeOnMidPoint = function (midPoint) {
@@ -271,4 +273,4 @@ var MoleculeLoader = (function ($) {
         getMidPoint: getMidPoint,
         getFurthestDistanceToMidPoint: getFurthestDistanceToMidPoint,
     };
-})(jQuery);
+})();

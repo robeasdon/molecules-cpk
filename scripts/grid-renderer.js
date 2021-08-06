@@ -1,6 +1,6 @@
-/*global jQuery, ShaderLoader, Utilities, vec3, mat4*/
+/*global ShaderLoader, Utilities, vec3, mat4*/
 
-var GridRenderer = (function ($, ShaderLoader, Utilities) {
+var GridRenderer = (function (ShaderLoader, Utilities) {
     "use strict";
 
     var gl;
@@ -220,7 +220,7 @@ var GridRenderer = (function ($, ShaderLoader, Utilities) {
     var init = function (ctx) {
         gl = ctx;
         initBuffers();
-        return $.when(loadShaders());
+        return loadShaders();
     };
 
     return {
@@ -228,4 +228,4 @@ var GridRenderer = (function ($, ShaderLoader, Utilities) {
         render: render,
         initShader: initShader,
     };
-})(jQuery, ShaderLoader, Utilities);
+})(ShaderLoader, Utilities);

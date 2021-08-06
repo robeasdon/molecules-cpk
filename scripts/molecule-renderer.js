@@ -1,6 +1,6 @@
-/*global jQuery, ShaderLoader*/
+/*global ShaderLoader*/
 
-var MoleculeRenderer = (function ($, ShaderLoader) {
+var MoleculeRenderer = (function (ShaderLoader) {
     "use strict";
 
     var gl;
@@ -136,7 +136,7 @@ var MoleculeRenderer = (function ($, ShaderLoader) {
     var init = function (ctx) {
         gl = ctx;
         initBuffers();
-        return $.when(loadShaders());
+        return loadShaders();
     };
 
     return {
@@ -144,4 +144,4 @@ var MoleculeRenderer = (function ($, ShaderLoader) {
         initShader: initShader,
         render: render,
     };
-})(jQuery, ShaderLoader);
+})(ShaderLoader);

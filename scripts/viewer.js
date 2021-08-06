@@ -1,15 +1,15 @@
-/*global jQuery, vec3, mat4, Grid, GridRenderer, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, Utilities*/
+/*global vec3, mat4, Grid, GridRenderer, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, Utilities*/
 
-var Viewer = (function ($, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities) {
+var Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities) {
     "use strict";
 
     var gl;
     var exts = {};
 
-    var $canvas;
+    let canvas;
 
     var settings = {
-        canvas: "#canvas",
+        canvasSelector: "#canvas",
         width: 512,
         height: 512,
     };
@@ -384,27 +384,23 @@ var Viewer = (function ($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molec
     var handleMouseWheel = function (event) {
         requestRedraw();
 
-        var delta = event.originalEvent.wheelDelta
-            ? event.originalEvent.wheelDelta / 40
-            : event.originalEvent.detail
-            ? -event.originalEvent.detail
-            : 0;
+        var delta = event.wheelDelta ? event.wheelDelta / 40 : event.detail ? -event.detail : 0;
         camera.position[2] -= delta * 0.5;
     };
 
     var getImageDataURL = function () {
-        return $canvas[0].toDataURL("image/jpeg");
+        return canvas.toDataURL("image/jpeg");
     };
 
     var updateRenderSettings = function (options) {
-        renderSettings = $.extend({}, renderSettings, options);
+        renderSettings = { ...renderSettings, ...options };
     };
 
     var bindEventListeners = function () {
-        $canvas.on("mousedown", handleMouseDown);
-        $canvas.on("mouseup", handleMouseUp);
-        $canvas.on("mousemove", handleMouseMove);
-        $canvas.bind("mousewheel DOMMouseScroll", handleMouseWheel);
+        canvas.addEventListener("mousedown", handleMouseDown);
+        canvas.addEventListener("mouseup", handleMouseUp);
+        canvas.addEventListener("mousemove", handleMouseMove);
+        canvas.addEventListener("wheel", handleMouseWheel);
     };
 
     var loadFromFile = function (str) {
@@ -414,7 +410,7 @@ var Viewer = (function ($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molec
     };
 
     var download = function (pdbID) {
-        return MoleculeLoader.download(pdbID).done(function () {
+        return MoleculeLoader.download(pdbID).then(function () {
             setupMolecule();
             requestRedraw();
         });
@@ -448,8 +444,8 @@ var Viewer = (function ($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molec
     var resize = function (width, height) {
         requestRedraw();
 
-        $canvas[0].width = width;
-        $canvas[0].height = height;
+        canvas.width = width;
+        canvas.height = height;
 
         settings.width = width;
         settings.height = height;
@@ -462,26 +458,23 @@ var Viewer = (function ($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molec
     };
 
     var init = function (options) {
-        settings = $.extend({}, settings, options);
-        $canvas = $(settings.canvas);
-
-        gl = $canvas[0].getContext("experimental-webgl", {
+        settings = { ...settings, ...options };
+        canvas = document.querySelector(settings.canvasSelector);
+        gl = canvas.getContext("experimental-webgl", {
             preserveDrawingBuffer: true,
         });
 
         if (!gl || !initExtentions()) {
             alert("Could not initialise WebGL.");
-            return $.Deferred().reject();
+            return Promise.reject("Could not initialise WebGL.");
         }
 
         initGL();
         initBasePlane();
-        bindEventListeners();
 
         ShaderLoader.init(gl);
 
         var initPromises = [];
-
         initPromises.push(
             DeferredRenderer.init(gl, exts, {
                 width: settings.width,
@@ -491,7 +484,8 @@ var Viewer = (function ($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molec
             MoleculeRenderer.init(gl)
         );
 
-        return $.when.apply($, initPromises).done(function () {
+        return Promise.all(initPromises).then(function () {
+            bindEventListeners();
             resize(settings.width, settings.height);
         });
     };
@@ -507,4 +501,4 @@ var Viewer = (function ($, DeferredRenderer, ShaderLoader, MoleculeLoader, Molec
         resize: resize,
         picking: picking,
     };
-})(jQuery, DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities);
+})(DeferredRenderer, ShaderLoader, MoleculeLoader, MoleculeRenderer, GridRenderer, Utilities);

@@ -31,6 +31,7 @@ var Utilities = (function () {
 
         if (disc > 0) {
             var t = (-b - Math.sqrt(disc)) / (2 * a);
+            
             if (t > 0) {
                 return t;
             }
@@ -83,27 +84,32 @@ var Utilities = (function () {
 
     utils.sqDistPointAABB = function (p, min, max) {
         var sqDist = 0;
-
         var v = p[0];
+
         if (v < min[0]) {
             sqDist += (min[0] - v) * (min[0] - v);
         }
+
         if (v > max[0]) {
             sqDist += (v - max[0]) * (v - max[0]);
         }
 
         v = p[1];
+
         if (v < min[1]) {
             sqDist += (min[1] - v) * (min[1] - v);
         }
+
         if (v > max[1]) {
             sqDist += (v - max[1]) * (v - max[1]);
         }
 
         v = p[2];
+
         if (v < min[2]) {
             sqDist += (min[2] - v) * (min[2] - v);
         }
+
         if (v > max[2]) {
             sqDist += (v - max[2]) * (v - max[2]);
         }
