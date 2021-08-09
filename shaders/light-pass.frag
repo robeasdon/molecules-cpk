@@ -108,10 +108,10 @@ void main()
         color = vec3(ao);
         color = pow(color, vec3(0.45));
     } else if (uRenderMode == 5) {
-        color = diffuseTexel.xyz * 0.8 * (normalTexel.z * 0.5 + 1.0) * ao;
+        color = diffuseTexel.xyz * ao;
         color = pow(color, vec3(0.45));
     } else {
-        color += diffuseTexel.xyz * 0.2 * (normalTexel.z * 0.5 + 1.0) * ao;
+        color += diffuseTexel.xyz * 0.2 * ao;
 
         if (NdotL > 0.0) {
             color += diffuseTexel.xyz * 0.5 * NdotL;
