@@ -1,6 +1,6 @@
 precision highp float;
 
-#define MAX_OCCLUDERS 16
+#define MAX_OCCLUDERS 64
 
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
@@ -57,7 +57,7 @@ float calcAO(vec3 pos, vec3 normal, float sphereID)
 
         vec4 sphere = texture2D(uOccludersTexture, uvOccluders);
 
-        if(int(sphere.w) == 0) {
+        if (int(sphere.w) == 0) {
             break;
         }
 

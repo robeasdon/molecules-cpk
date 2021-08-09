@@ -30,7 +30,7 @@ let DeferredRenderer = (function (GBuffer, ShaderLoader) {
     };
 
     let calcOccluders = function (atoms, grid) {
-        let maxOccludersPerAtom = 16; // also need to change constant in shader
+        let maxOccludersPerAtom = 64; // also need to change constant in shader
         let sphereOccluders = [];
 
         // get occluder atoms for each sphere
