@@ -381,6 +381,7 @@ let Viewer = (function (DeferredRenderer, ShaderLoader, MoleculeLoader, Molecule
 
         let delta = event.wheelDelta ? event.wheelDelta / 40 : event.detail ? -event.detail : 0;
         camera.position[2] -= delta * 0.5;
+        camera.position[2] = Math.max(0.0, camera.position[2]);
     };
 
     let handleResize = function () {

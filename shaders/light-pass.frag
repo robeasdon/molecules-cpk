@@ -19,25 +19,28 @@ uniform sampler2D uOccludersTexture;
 
 varying vec2 vTexCoords;
 
-void toLocal(in vec3 p, in mat4 matrix, inout vec3 newP)
+// http://iquilezles.org/www/articles/sphereao/sphereao.htm
+float sphereOcclusion(vec3 pos, vec3 normal, vec4 sphere)
 {
-    float a = matrix[0][0], b = matrix[0][1], c = matrix[0][2];
-    float d = matrix[1][0], e = matrix[1][1], f = matrix[1][2];
-    float g = matrix[2][0], h = matrix[2][1], j = matrix[2][2];
-    float k = matrix[3][0], l = matrix[3][1], m = matrix[3][2];
+    vec3 r = sphere.xyz - pos;
+    float l = length(r);
+    float d = dot(normal, r);
+    float res = d;
 
-    newP.x = a*p.x + b*p.y + c*p.z + (a*-k + b*-l + c*-m);
-    newP.y = d*p.x + e*p.y + f*p.z + (d*-k + e*-l + f*-m);
-    newP.z = g*p.x + h*p.y + j*p.z + (g*-k + h*-l + j*-m);
+    if (d < sphere.w) {
+        res = pow(clamp((d + sphere.w) / (2.0 * sphere.w), 0.0, 1.0), 1.5) * sphere.w;
+    }
+    
+    return clamp(res * (sphere.w * sphere.w) / (l * l * l), 0.0, 1.0);
 }
 
-float calcAO(vec3 pos, float sphereID)
+float calcAO(vec3 pos, vec3 normal, float sphereID)
 {
     if (sphereID < 0.0) {
         return 1.0;
     }
 
-    float ao = 0.0;
+    float ao = 1.0;
 
     float texWidth = uOccludersTextureSize.x;
     float texHeight = uOccludersTextureSize.y;
@@ -47,9 +50,6 @@ float calcAO(vec3 pos, float sphereID)
 
     vec2 uvOccluders;
     uvOccluders.x = (xOcc + 0.5) / texWidth;
-
-    vec3 localPos;
-    toLocal(pos, uModelViewMatrix, localPos);
 
     for (int i = 0; i < MAX_OCCLUDERS; i++) {
         float yo = float(i + (int(yOcc) * MAX_OCCLUDERS));
@@ -61,14 +61,12 @@ float calcAO(vec3 pos, float sphereID)
             break;
         }
 
-        vec3 dir = sphere.xyz - localPos;
-        float len = length(dir);
-        float sphereLen = sphere.w / (len + 0.05); // add .05 hack to fix flickering
-
-        ao += 1.0 - sqrt(1.0 - (sphereLen * sphereLen));
+        vec4 sphereEyePosition = uModelViewMatrix * vec4(sphere.xyz, 1.0);
+        
+        ao *= 1.0 - uAOIntensity * sphereOcclusion(pos, normal, vec4(sphereEyePosition.xyz, sphere.w));
     }
 
-    return clamp(1.0 - (ao * uAOIntensity), 0.0, 1.0);
+    return clamp(ao, 0.0, 1.0);
 }
 
 void main()
@@ -86,7 +84,7 @@ void main()
 
     vec3 n = normalize(normalTexel.xyz);
 
-    float ao = calcAO(positionTexel.xyz, positionTexel.w);
+    float ao = calcAO(positionTexel.xyz, n, positionTexel.w);
 
     vec3 l = normalize(uLightPos - positionTexel.xyz);
     float NdotL = max(0.0, dot(n, l));
